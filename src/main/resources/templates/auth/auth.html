@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>인증 페이지</title>
+    <style>
+        .auth-container { width: 300px; margin: 50px auto; text-align: center; }
+        .input-group { margin-bottom: 10px; }
+        input { width: 100%; padding: 8px; }
+        button { width: 100%; padding: 10px; background-color: #007bff; color: white; border: none; cursor: pointer; }
+        .switch-link { margin-top: 15px; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+<div class="auth-container">
+    <h2>Home Talk One Pass</h2>
+    <h2>로그인</h2>
+    <form th:action="@{/login}" method="post">
+        <div class="input-group">
+            <input type="text" name="username" placeholder="아이디를 입력하세요." required>
+        </div>
+        <div class="input-group">
+            <input type="password" name="password" placeholder="비밀번호를 입력하세요." required>
+        </div>
+        <button type="submit">로그인</button>
+    </form>
+
+    <div class="other-contain">
+        <p>계정이 없으신가요? <a th:href="@{/auth/register}">회원가입 하러가기</a></p>
+    </div>
+</div>
+
+</body>
+</html>
