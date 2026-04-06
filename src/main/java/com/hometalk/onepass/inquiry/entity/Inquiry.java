@@ -1,5 +1,6 @@
 package com.hometalk.onepass.inquiry.entity;
 
+import com.hometalk.onepass.user.User;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -9,14 +10,16 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
+@Table(name = "kjh_inquiry")
 public class Inquiry {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private String memberId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
 
     @Column(nullable = false)
     private String title;
@@ -33,11 +36,17 @@ public class Inquiry {
     private String status = "미답변";
 
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
     // DB에 처음 저장될 때 현재 시간을 자동으로 넣어줌
     @PrePersist
     public void prePersist() {
         this.createdAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        this.updatedAt = LocalDateTime.now();
     }
 
     /**

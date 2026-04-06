@@ -9,7 +9,10 @@ import java.time.LocalDateTime;
 @Getter @Setter
 public class ReservationRequestDto {
     private Long facilityId;
-    private String memberId;
+
+    // [수정 예정] private String memberId;
+    private Long userId; // TODO: 팀 공통 User 엔티티의 ID(PK)를 받도록 변경
+
     private LocalDateTime startTime;
     private LocalDateTime endTime;
 }

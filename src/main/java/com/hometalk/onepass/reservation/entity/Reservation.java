@@ -1,15 +1,18 @@
 package com.hometalk.onepass.reservation.entity;
 
 import com.hometalk.onepass.facility.entity.Facility;
+import com.hometalk.onepass.user.User;
 import jakarta.persistence.*;
 import jakarta.persistence.Id;
 import lombok.*;
+
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
+@Table(name = "kjh_reservation")
 
 public class Reservation {
 
@@ -23,7 +26,9 @@ public class Reservation {
     private Facility facility;
 
     // 누가 예약 ? (회원 정보와 연결)
-    private String memberId;        // 이후 로그인 기능 구현 후 Member로 바꿀 예정
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id") // DB의 user_id 컬럼과 매핑
+    private User user;      // 병합 후 import 예정
 
     // 언제부터 언제까지 ?
     @Embedded

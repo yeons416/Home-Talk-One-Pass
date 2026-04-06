@@ -9,20 +9,22 @@ import java.time.LocalDateTime;
 
 @Getter @Setter
 public class ReservationResponseDto {
-    private Long id;            // 예약 번호
-    private String facilityName;        // 시설 이름
-    private String memberId;        // 회원 ID
-    private LocalDateTime startTime;    // 예약 시작 시간
-    private LocalDateTime endTime;      // 예약 종료 시간
-    private ReservationStatus status;   // 예약 상태
+    private Long id;
+    private String facilityName;
+    private String userName;        // [변경] ID 대신 사용자 이름을 보여주면 더 친절하겠죠?
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
+    private ReservationStatus status;
 
-    // 엔티티를 DTO로 변환하는 메소드
     public static ReservationResponseDto fromEntity(Reservation reservation) {
         ReservationResponseDto dto = new ReservationResponseDto();
         dto.setId(reservation.getId());
-        // 시설 객체에서 이름 빼오기
         dto.setFacilityName(reservation.getFacility().getName());
-        dto.setMemberId(reservation.getMemberId());
+
+        // [수정 예정] reservation.getMemberId() -> reservation.getUser().getName()
+        // 지금은 User가 없으니 일단 주석이나 기존 필드로 유지하세요!
+        // dto.setUserName(reservation.getUser().getName());
+
         dto.setStartTime(reservation.getReservationTime().getStartTime());
         dto.setEndTime(reservation.getReservationTime().getEndTime());
         dto.setStatus(reservation.getStatus());

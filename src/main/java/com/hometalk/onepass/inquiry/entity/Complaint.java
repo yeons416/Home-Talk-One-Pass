@@ -2,6 +2,7 @@ package com.hometalk.onepass.inquiry.entity;
 
 // 입주민 민원 게시판 담당
 
+import com.hometalk.onepass.user.User;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -11,14 +12,16 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
+@Table(name = "kjh_complaint")
 public class Complaint {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private String memberId;        // 작성자 ID
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;        // 작성자 ID
 
     private String category;        // 민원 분류 (주차, 공용시설, 등)
 
