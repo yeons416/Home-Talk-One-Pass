@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<body>
+<header th:fragment="categoryMenu" class="category-menu-bar">
+
+    <!-- 카테고리 메뉴 프래그먼트 정의 -->
+    <ul class="category-list">
+        <li><a th:href="@{/category/news}">전체보기</a></li>
+        <li><a th:href="@{/category/news}">새소식</a></li>
+        <li><a th:href="@{/category/event}">이벤트</a></li>
+        <li><a th:href="@{/category/community}">커뮤니티</a></li>
+        <li><a th:href="@{/category/qna}">고객센터</a></li>
+    </ul>
+
+</header>
+</body>
+</html>
