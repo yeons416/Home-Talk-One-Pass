@@ -1,4 +1,4 @@
 package com.hometalk.onepass.notice.dto;
 
-public class NoticeViewDTO {
+public class NoticeDetailResponseDto {
 }
