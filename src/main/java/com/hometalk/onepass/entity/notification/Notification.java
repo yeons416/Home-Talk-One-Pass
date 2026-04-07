@@ -1,9 +1,6 @@
 package com.hometalk.onepass.entity.notification;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -38,8 +35,12 @@ public class Notification {
     private int total_amount;           // 합계 금액
     private boolean status;             // UNPAID / PAID (관리비 납부 유무)
     private LocalDateTime due_date;     // 납기일
-    private List<String> item_name;           // 전기료, 수도료, 청소비 등 항목명
-    private List<Integer> item_amount;            // 개별 항목 금액
+
+    @ElementCollection // 2. List 타입을 DB에 저장하기 위해 추가 (필수)
+    private List<String> item_name;
+
+    @ElementCollection // 3. List 타입을 DB에 저장하기 위해 추가 (필수)
+    private List<Integer> item_amount;
 
     @Builder
     public Notification(Long id, Long user_id, String module_name, String category_alarm, String message,
@@ -51,8 +52,8 @@ public class Notification {
         this.category_alarm = category_alarm;
         this.message = message;
         this.reference_id = reference_id;
-        this.is_read = is_read;
-        this.createdAt = createdAt;
+        this.is_read = (is_read != null) ? is_read : false; // 기본값 처리
+        this.createdAt = (createdAt != null) ? createdAt : LocalDateTime.now();
         this.deletedAt = null;
     }
 
