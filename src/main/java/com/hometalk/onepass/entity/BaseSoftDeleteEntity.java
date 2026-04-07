@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @MappedSuperclass
-@SQLRestriction("deleted_at IS NULL")
+@SQLRestriction("deleted_at IS NULL") // 소프트 딜리트 구현
 public abstract class BaseSoftDeleteEntity extends BaseTimeEntity {
 
     @Column(name = "deleted_at")
