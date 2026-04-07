@@ -8,8 +8,14 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 @EnableJpaAuditing	// Data Auditing 사용을 위한 어노테이션
 public class OnepassApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(OnepassApplication.class, args);
-	}
+
+    public static void main(String[] args) {
+        SpringApplication.run(OnepassApplication.class, args);
+    }
 
 }
+
+
+
+
+
