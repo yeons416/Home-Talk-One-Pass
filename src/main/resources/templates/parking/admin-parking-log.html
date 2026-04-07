@@ -127,49 +127,58 @@
       loadParkingLogs();
   }
 
+  // 모든 드롭다운 닫기
+  function closeAllDropdowns() {
+      document.getElementById('yearDropdown').style.display = 'none';
+      document.getElementById('monthDropdown').style.display = 'none';
+      document.getElementById('typeDropdown').style.display = 'none';
+  }
+
   // 년 드롭다운 토글
   function toggleYearDropdown() {
       const dropdown = document.getElementById('yearDropdown');
-      dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
-      document.getElementById('monthDropdown').style.display = 'none';
-      document.getElementById('typeDropdown').style.display = 'none';
+      const isOpen = dropdown.style.display !== 'none';
+      closeAllDropdowns();
+      if (!isOpen) dropdown.style.display = 'block';
   }
 
   // 월 드롭다운 토글
   function toggleMonthDropdown() {
       const dropdown = document.getElementById('monthDropdown');
-      dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
-      document.getElementById('yearDropdown').style.display = 'none';
-      document.getElementById('typeDropdown').style.display = 'none';
+      const isOpen = dropdown.style.display !== 'none';
+      closeAllDropdowns();
+      if (!isOpen) dropdown.style.display = 'block';
   }
 
   // 차량 구분 드롭다운 토글
   function toggleTypeDropdown() {
       const dropdown = document.getElementById('typeDropdown');
-      dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
-      document.getElementById('yearDropdown').style.display = 'none';
-      document.getElementById('monthDropdown').style.display = 'none';
+      const isOpen = dropdown.style.display !== 'none';
+      closeAllDropdowns();
+      if (!isOpen) dropdown.style.display = 'block';
   }
 
   // 외부 클릭 시 드롭다운 닫기
   document.addEventListener('click', (e) => {
-      if (!e.target.closest('#yearBtn') && !e.target.closest('#yearDropdown')) {
-          document.getElementById('yearDropdown').style.display = 'none';
+      if (!e.target.closest('.dropdown-wrapper')) {
+          closeAllDropdowns();
       }
-      if (!e.target.closest('#monthBtn') && !e.target.closest('#monthDropdown')) {
-          document.getElementById('monthDropdown').style.display = 'none';
-      }
-      if (!e.target.closest('#typeBtn') && !e.target.closest('#typeDropdown')) {
-          document.getElementById('typeDropdown').style.display = 'none';
-      }
+  });
+
+  // 세대 검색 Enter 키 처리
+  document.getElementById('householdSearch').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') loadParkingLogs();
   });
 
   // 주차 기록 조회
   function loadParkingLogs() {
-      const household = document.getElementById('householdSearch').value.trim();
+      const household = encodeURIComponent(document.getElementById('householdSearch').value.trim());
 
       fetch(`/admin/parking/logs?year=${selectedYear}&month=${selectedMonth}&type=${selectedType}&household=${household}`)
-          .then(res => res.json())
+          .then(res => {
+              if (!res.ok) throw new Error('서버 오류');
+              return res.json();
+          })
           .then(data => {
               const parkingList = document.getElementById('parkingList');
               parkingList.innerHTML = '';
@@ -192,6 +201,10 @@
                   `;
                   parkingList.appendChild(row);
               });
+          })
+          .catch(err => {
+              console.error(err);
+              alert('데이터 조회 중 오류가 발생했습니다.');
           });
   }
 

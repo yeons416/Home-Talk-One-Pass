@@ -103,13 +103,15 @@
     <h3>5. 전기차 충전소 위치</h3>
     <div class="guide-content">
       <!-- 이미지가 있으면 이미지 표시 -->
-      <div th:if="${parkingMapImage != null}">
-        <img th:src="${parkingMapImage}" alt="주차장 지도">
+      <div th:if="${parkingMapImage}">
+        <img th:src="${parkingMapImage}"
+             alt="전기차 충전소 위치 안내 지도"
+             onerror="this.style.display='none'">
       </div>
       <!-- 없으면 텍스트 표시 -->
-      <div th:unless="${parkingMapImage != null}">
-        <p th:if="${parkingMapText != null}" th:text="${parkingMapText}"></p>
-        <p th:unless="${parkingMapText != null}">
+      <div th:unless="${parkingMapImage}">
+        <p th:if="${parkingMapText}" th:text="${parkingMapText}"></p>
+        <p th:unless="${parkingMapText}">
           전기차 충전소 위치 정보는 관리사무소에 문의해주세요.
         </p>
       </div>
@@ -122,13 +124,12 @@
     <div class="guide-content">
       <ul>
         <li>관리사무소 운영시간 내 방문 또는 연락 바랍니다.</li>
-        <li th:if="${officePhone != null}">
+        <li th:if="${not #strings.isEmpty(officePhone)}">
           전화 : <span th:text="${officePhone}"></span>
         </li>
       </ul>
     </div>
   </div>
-
 </div>
 
 </body>

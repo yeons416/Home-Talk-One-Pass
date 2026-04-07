@@ -98,14 +98,25 @@
 
 <script>
   const uploadedFiles = [];
+  const fileInput = document.getElementById('fileInput');
+  const fileList = document.getElementById('fileList');
+  const fileError = document.getElementById('fileError');
+  const vehicleNumberInput = document.getElementById('vehicleNumber');
+  const vehicleModelInput = document.getElementById('vehicleModel');
+  const vehicleNumberError = document.getElementById('vehicleNumberError');
+  const vehicleTypeInput = document.getElementById('vehicleType');
+  const vehicleTypeError = document.getElementById('vehicleTypeError');
+  const vehicleNumberRegex = /^\d{2,3}[가-힣]\d{4}$/;
+  const allowedExtensions = ['jpg', 'jpeg', 'pdf'];
+  const allowedMimeTypes = ['image/jpeg', 'application/pdf'];
 
   // 차량 번호 실시간 검증
-  const vehicleNumberInput = document.getElementById('vehicleNumber');
-  const vehicleNumberError = document.getElementById('vehicleNumberError');
-  const vehicleNumberRegex = /^\d{2,3}[가-힣]\d{4}$/;
-
   vehicleNumberInput.addEventListener('input', () => {
-      const value = vehicleNumberInput.value.replace(/\s/g, '');
+      const value = vehicleNumberInput.value
+          .replace(/\s/g, '')
+          .toUpperCase();
+      vehicleNumberInput.value = value;
+
       if (value && !vehicleNumberRegex.test(value)) {
           vehicleNumberError.textContent = '올바른 차량 번호 형식이 아닙니다. (예: 123가4567)';
       } else {
@@ -114,11 +125,13 @@
       checkSubmitBtn();
   });
 
+  // 차량 모델 공백 처리
+  vehicleModelInput.addEventListener('input', () => {
+      vehicleModelInput.value = vehicleModelInput.value.trim();
+  });
+
   // 차량 종류 선택
   const typeBtns = document.querySelectorAll('.type-btn');
-  const vehicleTypeInput = document.getElementById('vehicleType');
-  const vehicleTypeError = document.getElementById('vehicleTypeError');
-
   typeBtns.forEach(btn => {
       btn.addEventListener('click', () => {
           typeBtns.forEach(b => b.classList.remove('active'));
@@ -129,24 +142,34 @@
       });
   });
 
-  // 파일 추가
-  const addFileBtn = document.getElementById('addFileBtn');
-  const fileInput = document.getElementById('fileInput');
-  const fileList = document.getElementById('fileList');
-  const fileError = document.getElementById('fileError');
+  // 파일 추가 버튼
+  document.getElementById('addFileBtn').addEventListener('click', () => fileInput.click());
 
-  addFileBtn.addEventListener('click', () => fileInput.click());
-
+  // 파일 선택 시
   fileInput.addEventListener('change', () => {
       const files = Array.from(fileInput.files);
-      const allowedExtensions = ['jpg', 'jpeg', 'pdf'];
 
       files.forEach(file => {
           const ext = file.name.split('.').pop().toLowerCase();
+
+          // 파일 중복 방지
+          if (uploadedFiles.some(f => f.name === file.name)) {
+              fileError.textContent = `"${file.name}"은 이미 추가된 파일입니다.`;
+              return;
+          }
+
+          // 확장자 검증
           if (!allowedExtensions.includes(ext)) {
               fileError.textContent = 'jpg, pdf 파일만 업로드 가능합니다.';
               return;
           }
+
+          // MIME 타입 검증
+          if (!allowedMimeTypes.includes(file.type)) {
+              fileError.textContent = '올바르지 않은 파일 형식입니다.';
+              return;
+          }
+
           fileError.textContent = '';
           uploadedFiles.push(file);
 
@@ -160,20 +183,36 @@
           fileList.appendChild(row);
       });
 
-      fileInput.value = '';
+      syncFileInput();
       checkSubmitBtn();
   });
 
+  // fileInput과 uploadedFiles 동기화
+  function syncFileInput() {
+      const dt = new DataTransfer();
+      uploadedFiles.forEach(file => dt.items.add(file));
+      fileInput.files = dt.files;
+  }
+
   // 항목 제거
   document.getElementById('removeFileBtn').addEventListener('click', () => {
-      const rows = fileList.querySelectorAll('tr');
+      const rows = Array.from(fileList.querySelectorAll('tr'));
+      const toRemove = [];
+
       rows.forEach((row, index) => {
           const checkbox = row.querySelector('.fileCheck');
           if (checkbox && checkbox.checked) {
-              uploadedFiles.splice(index, 1);
-              row.remove();
+              toRemove.push(index);
           }
       });
+
+      // 뒤에서부터 제거해야 index 안 밀림
+      toRemove.reverse().forEach(index => {
+          uploadedFiles.splice(index, 1);
+          rows[index].remove();
+      });
+
+      syncFileInput();
       checkSubmitBtn();
   });
 
@@ -181,6 +220,7 @@
   document.getElementById('removeAllFileBtn').addEventListener('click', () => {
       fileList.innerHTML = '';
       uploadedFiles.length = 0;
+      syncFileInput();
       checkSubmitBtn();
   });
 
@@ -200,7 +240,7 @@
           !(isValidNumber && vehicleType && hasFile);
   }
 
-  // 폼 제출
+  // 폼 제출 시 최종 검증
   document.getElementById('vehicleForm').addEventListener('submit', (e) => {
       if (!vehicleTypeInput.value) {
           e.preventDefault();

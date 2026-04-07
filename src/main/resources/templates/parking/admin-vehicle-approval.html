@@ -46,7 +46,9 @@
 <div id="documentModal" style="display:none;">
   <div class="modal-content">
     <h3>증빙 서류</h3>
-    <img id="documentImage" src="" alt="증빙 서류">
+    <img id="documentImage" src="" alt="증빙 서류"
+         onerror="this.style.display='none'; document.getElementById('documentError').style.display='block'">
+    <p id="documentError" style="display:none;">서류를 불러올 수 없습니다.</p>
     <div class="modal-actions">
       <button type="button" onclick="closeDocumentModal()">닫기</button>
     </div>
@@ -89,16 +91,26 @@
       currentStatus = status;
       const tabBtns = document.querySelectorAll('.tab-btn');
       tabBtns.forEach(btn => btn.classList.remove('active'));
-      e.target.classList.add('active');
+      e.currentTarget.classList.add('active');
       loadVehicleList();
   }
 
   // 차량 목록 조회
   function loadVehicleList() {
+      const vehicleList = document.getElementById('vehicleList');
+
+      // 로딩 상태 표시
+      vehicleList.innerHTML = '<tr><td colspan="6">로딩 중...</td></tr>';
+
       fetch(`/admin/vehicle/approval/list?status=${currentStatus}`)
-          .then(res => res.json())
+          .then(async res => {
+              if (!res.ok) {
+                  const msg = await res.text();
+                  throw new Error(msg || '서버 오류');
+              }
+              return res.json();
+          })
           .then(data => {
-              const vehicleList = document.getElementById('vehicleList');
               vehicleList.innerHTML = '';
 
               if (data.length === 0) {
@@ -109,6 +121,11 @@
               }
 
               data.forEach(vehicle => {
+                  const rejectReason = vehicle.rejectReason ?? '';
+                  const rejectReasonShort = rejectReason.length > 10
+                      ? rejectReason.substring(0, 10) + '...'
+                      : rejectReason;
+
                   const row = document.createElement('tr');
                   row.innerHTML = `
                       <td>${vehicle.vehicleNumber}</td>
@@ -116,8 +133,10 @@
                       <td>${vehicle.household}</td>
                       <td>${vehicle.createdAt}</td>
                       <td>
-                          <button type="button" class="doc-btn"
-                                  onclick="viewDocument('${vehicle.documentPath}')">보기</button>
+                          ${vehicle.documentPath ? `
+                              <button type="button" class="doc-btn"
+                                      onclick="viewDocument('${vehicle.documentPath}')">보기</button>
+                          ` : '<span>서류 없음</span>'}
                       </td>
                       <td>
                           ${currentStatus === 'PENDING' ? `
@@ -127,28 +146,41 @@
                                       onclick="openRejectModal(${vehicle.approvalId})">반려</button>
                           ` : ''}
                           ${currentStatus === 'REJECTED' ? `
-                              <span class="reject-reason-text"
-                                    title="${vehicle.rejectReason}">
-                                  ${vehicle.rejectReason.length > 10
-                      ? vehicle.rejectReason.substring(0, 10) + '...'
-                      : vehicle.rejectReason}
+                              <span class="reject-reason-text" title="${rejectReason}">
+                                  ${rejectReasonShort}
                               </span>
                           ` : ''}
                       </td>
                   `;
                   vehicleList.appendChild(row);
               });
+          })
+          .catch(err => {
+              console.error(err);
+              vehicleList.innerHTML = '<tr><td colspan="6">데이터 조회 중 오류가 발생했습니다.</td></tr>';
           });
   }
 
   // 서류 보기
   function viewDocument(documentPath) {
-      document.getElementById('documentImage').src = documentPath;
+      if (!documentPath) {
+          alert('서류가 없습니다.');
+          return;
+      }
+      const img = document.getElementById('documentImage');
+      const error = document.getElementById('documentError');
+      img.style.display = 'block';
+      error.style.display = 'none';
+      img.src = documentPath;
       document.getElementById('documentModal').style.display = 'block';
   }
 
   // 서류 모달 닫기
   function closeDocumentModal() {
+      const img = document.getElementById('documentImage');
+      img.src = '';
+      img.style.display = 'block';
+      document.getElementById('documentError').style.display = 'none';
       document.getElementById('documentModal').style.display = 'none';
   }
 
@@ -157,13 +189,17 @@
       if (!confirm('승인 처리하시겠습니까?')) return;
 
       postFetch('/admin/vehicle/approval/approve', { approvalId: approvalId })
-          .then(res => {
-              if (res.ok) {
-                  alert('승인 처리가 완료되었습니다.');
-                  loadVehicleList();
-              } else {
-                  alert('승인 처리 중 오류가 발생했습니다.');
+          .then(async res => {
+              if (!res.ok) {
+                  const msg = await res.text();
+                  throw new Error(msg || '서버 오류');
               }
+              alert('승인 처리가 완료되었습니다.');
+              loadVehicleList();
+          })
+          .catch(err => {
+              console.error(err);
+              alert('승인 처리 중 오류가 발생했습니다.');
           });
   }
 
@@ -191,15 +227,20 @@
       postFetch('/admin/vehicle/approval/reject', {
           approvalId: selectedApprovalId,
           rejectReason: reason
-      }).then(res => {
-          if (res.ok) {
+      })
+          .then(async res => {
+              if (!res.ok) {
+                  const msg = await res.text();
+                  throw new Error(msg || '서버 오류');
+              }
               alert('반려 처리가 완료되었습니다.');
               closeRejectModal();
               loadVehicleList();
-          } else {
+          })
+          .catch(err => {
+              console.error(err);
               alert('반려 처리 중 오류가 발생했습니다.');
-          }
-      });
+          });
   }
 
   // 페이지 로드 시 목록 조회

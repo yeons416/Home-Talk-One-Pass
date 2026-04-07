@@ -50,9 +50,8 @@
   </div>
 
   <!-- 버튼 -->
-  <!-- 버튼 -->
   <div class="form-actions">
-    <a th:href="@{/staff/entry}" class="cancel-btn">취소</a>
+    <button type="button" onclick="location.href='/staff/entry'">취소</button>
     <button type="button" id="submitBtn" disabled onclick="processManualEntry()">입차 처리</button>
   </div>
 
@@ -83,7 +82,11 @@
 
   // 차량 번호 실시간 검증
   document.getElementById('vehicleNumber').addEventListener('input', () => {
-      const value = document.getElementById('vehicleNumber').value.replace(/\s/g, '');
+      const value = document.getElementById('vehicleNumber').value
+          .replace(/\s/g, '')
+          .toUpperCase();
+      document.getElementById('vehicleNumber').value = value;
+
       const error = document.getElementById('vehicleNumberError');
       if (value && !vehicleNumberRegex.test(value)) {
           error.textContent = '올바른 차량 번호 형식이 아닙니다. (예: 123가4567)';
@@ -107,6 +110,7 @@
 
   // 수동 입차 처리
   function processManualEntry() {
+      const btn = document.getElementById('submitBtn');
       const purposeType = purposeTypeInput.value;
       const dong = document.getElementById('dong').value.trim();
       const ho = document.getElementById('ho').value.trim();
@@ -121,6 +125,8 @@
           return;
       }
 
+      btn.disabled = true;
+
       fetch('/staff/vehicle/manual-entry', {
           method: 'POST',
           headers: {
@@ -133,14 +139,22 @@
               ho: ho,
               vehicleNumber: vehicleNumber
           })
-      }).then(res => {
-          if (res.ok) {
+      })
+          .then(async res => {
+              if (!res.ok) {
+                  const msg = await res.text();
+                  throw new Error(msg || '서버 오류');
+              }
               alert('수동 입차 처리가 완료되었습니다.');
               location.href = '/staff/entry';
-          } else {
+          })
+          .catch(err => {
+              console.error(err);
               alert('입차 처리 중 오류가 발생했습니다.');
-          }
-      });
+          })
+          .finally(() => {
+              btn.disabled = false;
+          });
   }
 </script>
 

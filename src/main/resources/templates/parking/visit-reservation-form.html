@@ -114,7 +114,7 @@
 
     <!-- 버튼 -->
     <div class="form-actions">
-      <a th:href="@{/parking/reservation}" class="cancel-btn">취소</a>
+      <button type="button" onclick="location.href='/parking/reservation'">취소</button>
       <button type="submit" id="submitBtn" disabled
               th:text="${reservation != null} ? '수정' : '등록'">
       </button>
@@ -131,7 +131,6 @@
   const datetimeError = document.getElementById('datetimeError');
   const vehicleNumberRegex = /^\d{2,3}[가-힣]\d{4}$/;
 
-  // 차량 번호 실시간 검증
   vehicleNumberInput.addEventListener('input', () => {
     const value = vehicleNumberInput.value.replace(/\s/g, '');
     if (value && !vehicleNumberRegex.test(value)) {
@@ -142,7 +141,6 @@
     checkSubmitBtn();
   });
 
-  // 방문 목적 실시간 검증
   purposeInput.addEventListener('input', () => {
     if (purposeInput.value.trim() === '') {
       purposeError.textContent = '방문 목적을 입력해주세요.';
@@ -152,14 +150,12 @@
     checkSubmitBtn();
   });
 
-  // 날짜 선택 시 검증
   ['year', 'month', 'day', 'hour', 'minute'].forEach(id => {
     document.getElementById(id).addEventListener('change', () => {
       checkSubmitBtn();
     });
   });
 
-  // 제출 버튼 활성화 체크
   function checkSubmitBtn() {
     const vehicleNumber = vehicleNumberInput.value.replace(/\s/g, '');
     const purpose = purposeInput.value.trim();
@@ -177,7 +173,6 @@
             !(isValidNumber && isValidPurpose && isValidDatetime);
   }
 
-  // 폼 제출 시 날짜 과거 여부 검증
   document.getElementById('reservationForm').addEventListener('submit', (e) => {
     const year = document.getElementById('year').value;
     const month = document.getElementById('month').value;
@@ -194,7 +189,6 @@
     }
   });
 
-  // 페이지 로드 시 제출 버튼 상태 체크 (수정 모드)
   checkSubmitBtn();
 </script>
 

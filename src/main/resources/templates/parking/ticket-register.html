@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>차량 티켓 등록</title>
+  <meta name="_csrf" th:content="${_csrf.token}">
+  <meta name="_csrf_header" th:content="${_csrf.headerName}">
   <style>
     /* CSS는 나중에 추가 */
   </style>
@@ -29,7 +31,7 @@
   </div>
 
   <!-- 검색 결과 -->
-  <div id="searchResult" class="hidden">
+  <div id="searchResult" style="display:none;">
 
     <!-- 차량 정보 -->
     <div class="vehicle-info-box">
@@ -38,7 +40,7 @@
       <p><span class="label">주차시간</span><span id="resultParkingTime"></span></p>
 
       <!-- 미등록 차량일 때 -->
-      <div id="unregisteredBox" class="hidden">
+      <div id="unregisteredBox" style="display:none;">
         <span class="warning">*미등록된 차량입니다. →</span>
         <button type="button" onclick="goRegister()">내 손님으로 등록하기</button>
       </div>
@@ -73,8 +75,8 @@
             1일권
           </label>
           <span id="dayRemaining"></span>
-          <button type="button" class="cancel-ticket-btn hidden"
-                  id="dayCancelBtn" onclick="cancelTicket('DAY')">적용 취소</button>
+          <button type="button" style="display:none;"
+                  id="dayCancelBtn" onclick="cancelTicket('DAY', this)">적용 취소</button>
         </div>
 
         <!-- 1시간권 -->
@@ -84,8 +86,8 @@
             1시간권
           </label>
           <span id="hourRemaining"></span>
-          <button type="button" class="cancel-ticket-btn hidden"
-                  id="hourCancelBtn" onclick="cancelTicket('HOUR')">적용 취소</button>
+          <button type="button" style="display:none;"
+                  id="hourCancelBtn" onclick="cancelTicket('HOUR', this)">적용 취소</button>
         </div>
       </div>
 
@@ -94,7 +96,7 @@
         <button type="button" onclick="decreaseCount()">-</button>
         <span id="ticketCount">1</span>
         <button type="button" onclick="increaseCount()">+</button>
-        <button type="button" id="applyBtn" disabled onclick="applyTicket()">적용</button>
+        <button type="button" id="applyBtn" disabled onclick="applyTicket(this)">적용</button>
       </div>
       <p class="hint" id="ticketHint"></p>
     </div>
@@ -102,10 +104,16 @@
 </div>
 
 <script>
+  const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+  const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+  const unregisteredBox = document.getElementById('unregisteredBox');
+
   let selectedParkingId = null;
   let selectedTicketType = null;
   let ticketCount = 1;
   let maxCount = 0;
+  let dayRemainingCount = 0;
+  let hourRemainingCount = 0;
 
   // 숫자만 입력
   document.getElementById('vehicleNumber').addEventListener('input', (e) => {
@@ -129,38 +137,44 @@
       searchError.textContent = '';
 
       fetch(`/parking/ticket/search?keyword=${keyword}`)
-          .then(res => res.json())
+          .then(async res => {
+              if (!res.ok) {
+                  const msg = await res.text();
+                  throw new Error(msg || '서버 오류');
+              }
+              return res.json();
+          })
           .then(data => {
               if (!data) {
                   searchError.textContent = '조회된 차량이 없습니다.';
-                  document.getElementById('searchResult').classList.add('hidden');
+                  document.getElementById('searchResult').style.display = 'none';
                   return;
               }
 
               selectedParkingId = data.parkingId;
 
-              // 차량 정보 표시
               document.getElementById('resultVehicleNumber').textContent = data.vehicleNumber;
               document.getElementById('resultEntryTime').textContent = data.entryTime;
               document.getElementById('resultParkingTime').textContent = data.parkingTime;
-
-              // 주차 시간 계산
               document.getElementById('totalTime').textContent = data.totalTime;
               document.getElementById('appliedTime').textContent = data.appliedTime;
               document.getElementById('remainingTime').textContent = data.remainingTime;
 
-              // 티켓 잔여 수량
-              document.getElementById('dayRemaining').textContent = `이번 달 남은 ${data.dayRemaining}개`;
-              document.getElementById('hourRemaining').textContent = `이번 달 남은 ${data.hourRemaining}분`;
+              // 숫자 별도 저장
+              dayRemainingCount = data.dayRemaining ?? 0;
+              hourRemainingCount = data.hourRemaining ?? 0;
 
-              // 미등록 차량 여부
-              if (data.unregistered) {
-                  document.getElementById('unregisteredBox').classList.remove('hidden');
-              } else {
-                  document.getElementById('unregisteredBox').classList.add('hidden');
-              }
+              document.getElementById('dayRemaining').textContent = `이번 달 남은 ${dayRemainingCount}개`;
+              document.getElementById('hourRemaining').textContent = `이번 달 남은 ${hourRemainingCount}분`;
 
-              document.getElementById('searchResult').classList.remove('hidden');
+              // 미등록 차량 여부 초기화 후 설정
+              unregisteredBox.style.display = data.unregistered ? 'block' : 'none';
+
+              document.getElementById('searchResult').style.display = 'block';
+          })
+          .catch(err => {
+              console.error(err);
+              searchError.textContent = '조회 중 오류가 발생했습니다.';
           });
   }
 
@@ -171,10 +185,11 @@
       document.getElementById('ticketCount').textContent = ticketCount;
 
       if (type === 'DAY') {
-          maxCount = parseInt(document.getElementById('dayRemaining').textContent);
+          maxCount = dayRemainingCount;
           document.getElementById('ticketHint').textContent = '*티켓 시간이 부족합니다. 티켓을 추가해주세요';
       } else {
-          maxCount = parseInt(document.getElementById('hourRemaining').textContent);
+          maxCount = hourRemainingCount;
+          document.getElementById('ticketHint').textContent = '';
       }
 
       document.getElementById('applyBtn').disabled = false;
@@ -196,60 +211,98 @@
       }
   }
 
+  // 티켓 적용 후 UI 리셋
+  function resetTicketUI() {
+      selectedTicketType = null;
+      ticketCount = 1;
+      document.getElementById('ticketCount').textContent = 1;
+      document.querySelectorAll('input[name="ticketType"]').forEach(r => r.checked = false);
+      document.getElementById('applyBtn').disabled = true;
+      document.getElementById('ticketHint').textContent = '';
+  }
+
   // 티켓 적용
-  function applyTicket() {
+  function applyTicket(btn) {
       if (!selectedParkingId || !selectedTicketType) return;
+
+      btn.disabled = true;
 
       fetch('/parking/ticket/apply', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+              'Content-Type': 'application/json',
+              [csrfHeader]: csrfToken
+          },
           body: JSON.stringify({
               parkingId: selectedParkingId,
               ticketType: selectedTicketType,
               count: ticketCount
           })
-      }).then(res => {
-          if (res.ok) {
-              alert('티켓이 적용되었습니다.');
-              searchVehicle();
-
-              // 적용 취소 버튼 표시
-              if (selectedTicketType === 'DAY') {
-                  document.getElementById('dayCancelBtn').classList.remove('hidden');
-              } else {
-                  document.getElementById('hourCancelBtn').classList.remove('hidden');
+      })
+          .then(async res => {
+              if (!res.ok) {
+                  const msg = await res.text();
+                  throw new Error(msg || '서버 오류');
               }
-          } else {
+              alert('티켓이 적용되었습니다.');
+
+              if (selectedTicketType === 'DAY') {
+                  document.getElementById('dayCancelBtn').style.display = 'block';
+              } else {
+                  document.getElementById('hourCancelBtn').style.display = 'block';
+              }
+
+              resetTicketUI();
+              searchVehicle();
+          })
+          .catch(err => {
+              console.error(err);
               alert('티켓 적용 중 오류가 발생했습니다.');
-          }
-      });
+          })
+          .finally(() => {
+              btn.disabled = false;
+          });
   }
 
   // 티켓 취소
-  function cancelTicket(type) {
+  function cancelTicket(type, btn) {
       if (!confirm('티켓 적용을 취소하시겠습니까?')) return;
+
+      btn.disabled = true;
 
       fetch('/parking/ticket/cancel', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+              'Content-Type': 'application/json',
+              [csrfHeader]: csrfToken
+          },
           body: JSON.stringify({
               parkingId: selectedParkingId,
               ticketType: type
           })
-      }).then(res => {
-          if (res.ok) {
+      })
+          .then(async res => {
+              if (!res.ok) {
+                  const msg = await res.text();
+                  throw new Error(msg || '서버 오류');
+              }
               alert('티켓 적용이 취소되었습니다.');
-              searchVehicle();
 
               if (type === 'DAY') {
-                  document.getElementById('dayCancelBtn').classList.add('hidden');
+                  document.getElementById('dayCancelBtn').style.display = 'none';
               } else {
-                  document.getElementById('hourCancelBtn').classList.add('hidden');
+                  document.getElementById('hourCancelBtn').style.display = 'none';
               }
-          } else {
+
+              searchVehicle();
+          })
+          .catch(err => {
+              console.error(err);
               alert('취소 처리 중 오류가 발생했습니다.');
-          }
-      });
+          })
+          .finally(() => {
+              btn.disabled = false;
+          });
   }
 
   // 미등록 차량 등록 페이지로 이동

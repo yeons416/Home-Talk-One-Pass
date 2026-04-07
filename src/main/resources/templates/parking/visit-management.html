@@ -67,8 +67,14 @@
         }
         searchError.textContent = '';
 
-        fetch(`/parking/unregistered/search?keyword=${keyword}`)
-            .then(res => res.json())
+        fetch(`/parking/unregistered/search?keyword=${encodeURIComponent(keyword)}`)
+            .then(async res => {
+                if (!res.ok) {
+                    const msg = await res.text();
+                    throw new Error(msg || '서버 오류');
+                }
+                return res.json();
+            })
             .then(data => {
                 const vehicleList = document.getElementById('vehicleList');
                 const searchResult = document.getElementById('searchResult');
@@ -95,6 +101,10 @@
                     `;
                     vehicleList.appendChild(li);
                 });
+            })
+            .catch(err => {
+                console.error(err);
+                searchError.textContent = '조회 중 오류가 발생했습니다.';
             });
     }
 
@@ -109,6 +119,9 @@
         if (!selectedParkingId) return;
         if (!confirm('해당 차량을 우리 세대 방문 차량으로 등록하시겠습니까?')) return;
 
+        const btn = document.getElementById('registerBtn');
+        btn.disabled = true;
+
         fetch('/parking/unregistered/match', {
             method: 'POST',
             headers: {
@@ -116,16 +129,27 @@
                 [csrfHeader]: csrfToken
             },
             body: JSON.stringify({ parkingId: selectedParkingId })
-        }).then(res => {
-            if (res.ok) {
+        })
+            .then(async res => {
+                if (!res.ok) {
+                    const msg = await res.text();
+                    throw new Error(msg || '서버 오류');
+                }
                 alert('입차 등록이 완료되었습니다.');
-                location.reload();
-            } else {
+                document.getElementById('vehicleNumber').value = '';
+                document.getElementById('vehicleList').innerHTML = '';
+                document.getElementById('searchResult').style.display = 'none';
+                document.getElementById('searchError').textContent = '';
+                selectedParkingId = null;
+            })
+            .catch(err => {
+                console.error(err);
                 alert('등록 처리 중 오류가 발생했습니다.');
-            }
-        });
+            })
+            .finally(() => {
+                btn.disabled = false;
+            });
     }
 </script>
-
 </body>
 </html>
