@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>방문 차량 관리</title>
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+    <style>
+        /* CSS는 나중에 추가 */
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2 class="page-title">방문 차량 관리</h2>
+
+    <!-- 차량 번호 검색 -->
+    <div class="form-group">
+        <label for="vehicleNumber">차량 번호</label>
+        <div class="search-group">
+            <input
+                    type="text"
+                    id="vehicleNumber"
+                    placeholder="차량 번호 4자리 입력"
+                    maxlength="4"
+            >
+            <button type="button" id="searchBtn" onclick="searchVehicle()">조회</button>
+        </div>
+        <span class="error-msg" id="searchError"></span>
+    </div>
+
+    <!-- 검색 결과 리스트 -->
+    <div id="searchResult" style="display:none;">
+        <ul id="vehicleList"></ul>
+    </div>
+
+    <!-- 입차 등록 버튼 -->
+    <div class="form-actions">
+        <button type="button" id="registerBtn" disabled onclick="registerVehicle()">입차 등록</button>
+    </div>
+</div>
+
+<script>
+    const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+    const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+    let selectedParkingId = null;
+
+    // 숫자만 입력
+    document.getElementById('vehicleNumber').addEventListener('input', (e) => {
+        e.target.value = e.target.value.replace(/\D/g, '');
+    });
+
+    // 엔터키로 조회
+    document.getElementById('vehicleNumber').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') searchVehicle();
+    });
+
+    // 차량 조회
+    function searchVehicle() {
+        const keyword = document.getElementById('vehicleNumber').value.trim();
+        const searchError = document.getElementById('searchError');
+
+        if (keyword.length !== 4) {
+            searchError.textContent = '차량 번호 4자리를 입력해주세요.';
+            return;
+        }
+        searchError.textContent = '';
+
+        fetch(`/parking/unregistered/search?keyword=${encodeURIComponent(keyword)}`)
+            .then(async res => {
+                if (!res.ok) {
+                    const msg = await res.text();
+                    throw new Error(msg || '서버 오류');
+                }
+                return res.json();
+            })
+            .then(data => {
+                const vehicleList = document.getElementById('vehicleList');
+                const searchResult = document.getElementById('searchResult');
+                vehicleList.innerHTML = '';
+                selectedParkingId = null;
+                document.getElementById('registerBtn').disabled = true;
+
+                if (data.length === 0) {
+                    searchError.textContent = '조회된 차량이 없습니다.';
+                    searchResult.style.display = 'none';
+                    return;
+                }
+
+                searchResult.style.display = 'block';
+                data.forEach(vehicle => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+                        <label>
+                            <input type="radio" name="vehicleSelect"
+                                   value="${vehicle.parkingId}"
+                                   onchange="selectVehicle(${vehicle.parkingId})">
+                            ${vehicle.vehicleNumber}
+                        </label>
+                    `;
+                    vehicleList.appendChild(li);
+                });
+            })
+            .catch(err => {
+                console.error(err);
+                searchError.textContent = '조회 중 오류가 발생했습니다.';
+            });
+    }
+
+    // 차량 선택
+    function selectVehicle(parkingId) {
+        selectedParkingId = parkingId;
+        document.getElementById('registerBtn').disabled = false;
+    }
+
+    // 입차 등록
+    function registerVehicle() {
+        if (!selectedParkingId) return;
+        if (!confirm('해당 차량을 우리 세대 방문 차량으로 등록하시겠습니까?')) return;
+
+        const btn = document.getElementById('registerBtn');
+        btn.disabled = true;
+
+        fetch('/parking/unregistered/match', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                [csrfHeader]: csrfToken
+            },
+            body: JSON.stringify({ parkingId: selectedParkingId })
+        })
+            .then(async res => {
+                if (!res.ok) {
+                    const msg = await res.text();
+                    throw new Error(msg || '서버 오류');
+                }
+                alert('입차 등록이 완료되었습니다.');
+                document.getElementById('vehicleNumber').value = '';
+                document.getElementById('vehicleList').innerHTML = '';
+                document.getElementById('searchResult').style.display = 'none';
+                document.getElementById('searchError').textContent = '';
+                selectedParkingId = null;
+            })
+            .catch(err => {
+                console.error(err);
+                alert('등록 처리 중 오류가 발생했습니다.');
+            })
+            .finally(() => {
+                btn.disabled = false;
+            });
+    }
+</script>
+</body>
+</html>
