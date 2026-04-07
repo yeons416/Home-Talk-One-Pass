@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<aside th:fragment="sidebar" class="sidebar" >
+    <nav>
+
+        <ul class="sidebar-menu" >
+            <!-- 1. 로고 영역: 여백 추가 + 활성화 체크 -->
+            <li style="margin-bottom: 30px;">
+                <a th:href="@{/index}"
+                   th:classappend="${menu == 'index'} ? 'active' : ''">
+                    My Website
+                </a>
+            </li>
+
+            <!-- 2. 메뉴 영역: 경로가 /notification으로 시작하면 강조 -->
+            <li>
+                <a th:href="@{/notification}"
+                   th:classappend="${menu == 'notification'} ? 'active' : ''">
+                    📚 알람 목록
+                </a>
+            </li>
+
+            <!-- 3. 메뉴 영역: 경로가 /notice로 시작하면 강조 -->
+            <li>
+                <a th:href="@{/notice}"
+                   th:classappend="${menu == 'notice'} ? 'active' : ''">
+                    👤 공지 사항
+                </a>
+            </li>
+
+            <!-- 4. 메뉴 영역: 경로가 /billing로 시작하면 강조 -->
+            <li>
+                <a th:href="@{/billing}"
+                   th:classappend="${menu == 'billing'} ? 'active' : ''">
+                    ⚙️ 관리비
+                </a>
+            </li>
+
+            <!-- 5. 메뉴 영역: 경로가 /parking로 시작하면 강조 -->
+            <li>
+                <a th:href="@{/parking}"
+                   th:classappend="${menu == 'parking'} ? 'active' : ''">
+                    ⚙️ 주차
+                </a>
+            </li>
+
+            <!-- 6. 메뉴 영역: 경로가 /civilComplaint로 시작하면 강조 -->
+            <li>
+                <a th:href="@{/civilComplaint}"
+                   th:classappend="${menu == 'civilComplaint'} ? 'active' : ''">
+                    ⚙️ 민원
+                </a>
+            </li>
+
+            <!-- 7. 메뉴 영역: 경로가 /schedule로 시작하면 강조 -->
+            <li>
+                <a th:href="@{/schedule}"
+                   th:classappend="${menu == 'schedule'} ? 'active' : ''">
+                    ⚙️ 일정
+                </a>
+            </li>
+
+            <!-- 7. 메뉴 영역: 경로가 /reservation로 시작하면 강조 -->
+            <li>
+                <a th:href="@{/reservation}"
+                   th:classappend="${menu == 'reservation'} ? 'active' : ''">
+                    ⚙️ 예약
+                </a>
+            </li>
+
+            <!-- 8. 메뉴 영역: 경로가 /community로 시작하면 강조 -->
+            <li>
+                <a th:href="@{/community}"
+                   th:classappend="${menu == 'community'} ? 'active' : ''">
+                    ⚙️ 커뮤니티
+                </a>
+            </li>
+
+        </ul>
+    </nav>
+</aside>
+</html>
