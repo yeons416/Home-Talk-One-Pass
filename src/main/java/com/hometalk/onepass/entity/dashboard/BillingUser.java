@@ -1,14 +1,11 @@
 package com.hometalk.onepass.entity.dashboard;
 
-import jakarta.persistence.ElementCollection;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
+import jakarta.persistence.*; // Id, Entity, ElementCollection 등을 한 번에 포함
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.data.annotation.Id;
+import jakarta.persistence.Id;
 
 import java.time.LocalDateTime;
 import java.util.List;
