@@ -1,251 +1,195 @@
 package com.hometalk.onepass.billing.service;
-/*
-* 엑셀 업로드 UPSERT
-* */
 
-import com.hometalk.onepass.billing.entity.*;
-import com.hometalk.onepass.billing.repository.*;
+import com.hometalk.onepass.billing.entity.Billing;
+import com.hometalk.onepass.billing.entity.Billing.BillingStatus;
+import com.hometalk.onepass.billing.entity.BillingDetail;
+import com.hometalk.onepass.billing.entity.BillingLog;
+import com.hometalk.onepass.billing.entity.BillingLog.BillingActionType;
+import com.hometalk.onepass.billing.repository.BillingDetailRepository;
+import com.hometalk.onepass.billing.repository.BillingLogRepository;
+import com.hometalk.onepass.billing.repository.BillingRepository;
+import com.hometalk.onepass.auth.entity.Household;
+import com.hometalk.onepass.auth.repository.HouseholdRepository;
+import lombok.Builder;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.YearMonth;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class BillingUploadService {
 
-    private final BillingsRepository       billingsRepository;
-    private final BillingDetailsRepository billingDetailsRepository;
-    private final BillingLogsRepository    billingLogsRepository;
+    private final BillingRepository       billingRepository;
+    private final BillingDetailRepository billingDetailRepository;
+    private final BillingLogRepository    billingLogRepository;
+    private final HouseholdRepository     householdRepository;
 
-    // 엑셀 필수 컬럼
-    private static final String COL_HOUSEHOLD_ID  = "household_id";
-    private static final String COL_BILLING_MONTH = "billing_month";
-    private static final String COL_TOTAL_AMOUNT  = "total_amount";
+    // ─────────────────────────────────────────────
+    // 유효성 검사 + 미리보기
+    // ─────────────────────────────────────────────
 
-    // 항목 컬럼 (순서 유지)
-    private static final List<String> ITEM_COLS = List.of(
-            "일반관리비", "청소비", "전기료", "수도료", "난방비"
-    );
+    @Transactional(readOnly = true)
+    public UploadPreviewResult validateAndPreview(List<UploadRow> rows) {
 
-    // ═══════════════════════════════════════════════════════
-    // 중복 부과월 확인 (팝업 트리거)
-    // ═══════════════════════════════════════════════════════
+        List<UploadPreviewRow> previewRows = new ArrayList<>();
+        int errorCount = 0;
 
-    /**
-     * 해당 부과월 데이터가 이미 존재하는지 확인
-     * - 사용처: BillingApiController.checkDuplicateMonth()
-     */
-    public boolean existsByBillingMonth(String billingMonth) {
-        return billingLogsRepository.existsUploadLogByBillingMonth(billingMonth);
-    }
+        for (int i = 0; i < rows.size(); i++) {
+            UploadRow row = rows.get(i);
+            int num = i + 1;
 
-    // ═══════════════════════════════════════════════════════
-    // 엑셀 업로드 확정 (UPSERT)
-    // ═══════════════════════════════════════════════════════
+            String validationError = validate(row);
+            boolean hasError = validationError != null;
+            if (hasError) errorCount++;
 
-    /**
-     * 엑셀 파일 파싱 → 유효성 검사 → BILLINGS UPSERT → BILLING_DETAILS Delete-Insert → 로그 기록
-     * - 사용처: BillingApiController.confirmUpload()
-     * - 응답: { insertCount, updateCount, errorCount }
-     */
-    @Transactional
-    public Map<String, Integer> processUpload(MultipartFile file, Long adminUserId) {
+            UpsertType upsertType = UpsertType.ERROR;
+            if (!hasError) {
+                Optional<Billing> existing = billingRepository
+                        .findByHousehold_IdAndBillingMonth(
+                                row.getHouseholdId(), row.getBillingMonth());
+                upsertType = existing.isPresent() ? UpsertType.UPDATE : UpsertType.INSERT;
+            }
 
-        // 1. 엑셀 파싱
-        List<Map<String, Object>> rows = parseExcel(file);
-
-        if (rows.isEmpty()) {
-            throw new IllegalArgumentException("업로드된 파일에 데이터가 없습니다.");
+            previewRows.add(UploadPreviewRow.builder()
+                    .num(num)
+                    .householdId(row.getHouseholdId())
+                    .billingMonth(row.getBillingMonth())
+                    .totalAmount(row.getTotalAmount())
+                    .validationError(validationError)
+                    .upsertType(upsertType)
+                    .build());
         }
 
-        // 2. 부과월 추출 (첫 행 기준)
-        String billingMonth = String.valueOf(rows.get(0).get(COL_BILLING_MONTH));
+        return new UploadPreviewResult(rows.size(), errorCount, previewRows);
+    }
 
-        // 3. 해당 부과월 기존 데이터 일괄 조회 (N+1 방지)
-        List<Long> householdIds = rows.stream()
-                .map(r -> toLong(r.get(COL_HOUSEHOLD_ID)))
-                .filter(Objects::nonNull)
-                .toList();
+    // ─────────────────────────────────────────────
+    // 업로드 확정 (UPSERT)
+    // ─────────────────────────────────────────────
 
-        Map<Long, Billings> existingMap = billingsRepository
-                .findByBillingMonthAndHouseholdIdIn(billingMonth, householdIds)
-                .stream()
-                .collect(Collectors.toMap(Billings::getHouseholdId, b -> b));
+    @Transactional
+    public UploadConfirmResult confirmUpload(List<UploadRow> rows, Long adminId) {
 
-        // 4. UPSERT 처리
         int insertCount = 0;
         int updateCount = 0;
-        int errorCount  = 0;
 
-        for (Map<String, Object> row : rows) {
+        for (UploadRow row : rows) {
 
-            try {
-                Long       householdId = toLong(row.get(COL_HOUSEHOLD_ID));
-                String     month       = String.valueOf(row.get(COL_BILLING_MONTH));
-                BigDecimal totalAmount = toBigDecimal(row.get(COL_TOTAL_AMOUNT));
+            if (validate(row) != null) continue;
 
-                // 유효성 검사
-                if (householdId == null || month == null || month.isBlank()) {
-                    errorCount++;
-                    continue;
-                }
-                if (totalAmount == null || totalAmount.compareTo(BigDecimal.ZERO) < 0) {
-                    errorCount++;
-                    continue;
-                }
+            Household household = householdRepository.findById(row.getHouseholdId())
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "존재하지 않는 세대입니다. id=" + row.getHouseholdId()));
 
-                // due_date: 해당 월 말일 자동 계산
-                LocalDate dueDate = YearMonth.parse(month, DateTimeFormatter.ofPattern("yyyy-MM"))
-                        .atEndOfMonth();
+            Optional<Billing> existing = billingRepository
+                    .findByHousehold_IdAndBillingMonth(
+                            row.getHouseholdId(), row.getBillingMonth());
 
-                // 항목 파싱
-                List<Map.Entry<String, BigDecimal>> items = ITEM_COLS.stream()
-                        .filter(col -> row.containsKey(col) && toBigDecimal(row.get(col)) != null)
-                        .map(col -> Map.entry(col, toBigDecimal(row.get(col))))
-                        .toList();
+            Billing billing;
 
-                if (existingMap.containsKey(householdId)) {
-                    // ── UPDATE ───────────────────────────────────
-                    Billings existing = existingMap.get(householdId);
-                    existing.updateByUpload(totalAmount, dueDate);
-
-                    // 상세항목 Delete-Insert
-                    billingDetailsRepository.deleteAllByBillingId(existing.getId());
-                    saveDetails(existing, items);
-
-                    updateCount++;
-
-                } else {
-                    // ── INSERT ───────────────────────────────────
-                    Billings newBilling = Billings.builder()
-                            .householdId(householdId)
-                            .billingMonth(month)
-                            .totalAmount(totalAmount)
-                            .dueDate(dueDate)
-                            .status(BillingStatus.UNPAID)
-                            .build();
-                    billingsRepository.save(newBilling);
-                    saveDetails(newBilling, items);
-
-                    insertCount++;
-                }
-
-            } catch (Exception e) {
-                errorCount++;
-            }
-        }
-
-        // 5. 업로드 로그 기록
-        String description = String.format(
-                "%s 업로드 완료 — 신규 %d건 · 업데이트 %d건 · 오류 %d건",
-                billingMonth, insertCount, updateCount, errorCount
-        );
-        BillingLogs log = BillingLogs.builder()
-                .userId(adminUserId)
-                .actionType(BillingActionType.UPLOAD)
-                // UPLOAD 로그는 billing_id 없이 기록 (전체 작업 단위)
-                // nullable = true 이므로 billing 필드 생략
-                .build();
-        billingLogsRepository.save(log);
-
-        // TODO: NOTIFICATIONS 미납 알림 일괄 생성 (NotificationService 연동)
-
-        return Map.of(
-                "insertCount", insertCount,
-                "updateCount", updateCount,
-                "errorCount",  errorCount
-        );
-    }
-
-    // ═══════════════════════════════════════════════════════
-    // 내부 유틸
-    // ═══════════════════════════════════════════════════════
-
-    /** 엑셀 파싱 → List<Map<컬럼명, 값>> */
-    private List<Map<String, Object>> parseExcel(MultipartFile file) {
-        List<Map<String, Object>> result = new ArrayList<>();
-        try (Workbook workbook = new XSSFWorkbook(file.getInputStream())) {
-            Sheet sheet = workbook.getSheetAt(0);
-            Row   header = sheet.getRow(0);
-            if (header == null) return result;
-
-            // 헤더 컬럼 인덱스 매핑
-            Map<Integer, String> colIndex = new HashMap<>();
-            for (Cell cell : header) {
-                colIndex.put(cell.getColumnIndex(), cell.getStringCellValue().trim());
+            if (existing.isPresent()) {
+                // UPDATE
+                billing = existing.get();
+                billing.updateByUpload(row.getTotalAmount(), row.getDueDate());
+                billingDetailRepository.deleteByBilling_Id(billing.getId());
+                updateCount++;
+            } else {
+                // INSERT
+                billing = billingRepository.save(Billing.builder()
+                        .household(household)
+                        .billingMonth(row.getBillingMonth())
+                        .dueDate(row.getDueDate())
+                        .totalAmount(row.getTotalAmount())
+                        .status(BillingStatus.UNPAID)
+                        .build());
+                insertCount++;
             }
 
-            // 데이터 행 파싱
-            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
-                Row row = sheet.getRow(i);
-                if (row == null) continue;
+            // billing_details 저장
+            List<BillingDetail> details = row.getItems().stream()
+                    .map(item -> BillingDetail.builder()
+                            .billing(billing)
+                            .itemName(item.getItemName())
+                            .itemAmount(item.getItemAmount())
+                            .build())
+                    .toList();
+            billingDetailRepository.saveAll(details);
 
-                Map<String, Object> rowMap = new HashMap<>();
-                for (Map.Entry<Integer, String> entry : colIndex.entrySet()) {
-                    Cell cell = row.getCell(entry.getKey());
-                    rowMap.put(entry.getValue(), getCellValue(cell));
-                }
-                result.add(rowMap);
-            }
-        } catch (IOException e) {
-            throw new IllegalArgumentException("엑셀 파일을 읽는 중 오류가 발생했습니다.", e);
+            // billing_logs UPLOAD 기록
+            billingLogRepository.save(BillingLog.builder()
+                    .billing(billing)
+                    .userId(adminId)
+                    .actionType(BillingActionType.UPLOAD)
+                    .build());
         }
-        return result;
+
+        return new UploadConfirmResult(insertCount, updateCount);
     }
 
-    /** Cell 값을 Object로 반환 */
-    private Object getCellValue(Cell cell) {
-        if (cell == null) return null;
-        return switch (cell.getCellType()) {
-            case NUMERIC -> cell.getNumericCellValue();
-            case STRING  -> cell.getStringCellValue().trim();
-            case BOOLEAN -> cell.getBooleanCellValue();
-            default      -> null;
-        };
+    // ─────────────────────────────────────────────
+    // 유효성 검사
+    // ─────────────────────────────────────────────
+
+    private String validate(UploadRow row) {
+        if (row.getHouseholdId() == null) return "세대 정보 누락";
+        if (row.getBillingMonth() == null || row.getBillingMonth().isBlank()) return "부과월 누락";
+        if (row.getTotalAmount() == null || row.getTotalAmount().compareTo(BigDecimal.ZERO) < 0) return "금액 누락";
+        if (row.getDueDate() == null) return "납기일 누락";
+        if (row.getItems() == null || row.getItems().isEmpty()) return "상세 항목 누락";
+        return null;
     }
 
-    /** BillingDetails 일괄 저장 */
-    private void saveDetails(Billings billing, List<Map.Entry<String, BigDecimal>> items) {
-        List<BillingDetails> details = items.stream()
-                .map(e -> BillingDetails.builder()
-                        .billing(billing)
-                        .itemName(e.getKey())
-                        .itemAmount(e.getValue())
-                        .build())
-                .toList();
-        billingDetailsRepository.saveAll(details);
+    // ─────────────────────────────────────────────
+    // 데이터 클래스
+    // ─────────────────────────────────────────────
+
+    @Getter
+    @Builder
+    public static class UploadRow {
+        private Long          householdId;
+        private String        billingMonth;
+        private LocalDate     dueDate;
+        private BigDecimal    totalAmount;
+        private List<ItemRow> items;
     }
 
-    /** Object → Long 변환 */
-    private Long toLong(Object val) {
-        if (val == null) return null;
-        try {
-            if (val instanceof Double d) return d.longValue();
-            return Long.parseLong(String.valueOf(val).trim());
-        } catch (NumberFormatException e) {
-            return null;
-        }
+    @Getter
+    @Builder
+    public static class ItemRow {
+        private String     itemName;
+        private BigDecimal itemAmount;
     }
 
-    /** Object → BigDecimal 변환 */
-    private BigDecimal toBigDecimal(Object val) {
-        if (val == null) return null;
-        try {
-            if (val instanceof Double d) return BigDecimal.valueOf(d);
-            return new BigDecimal(String.valueOf(val).trim());
-        } catch (NumberFormatException e) {
-            return null;
-        }
+    @Getter
+    @Builder
+    public static class UploadPreviewRow {
+        private int        num;
+        private Long       householdId;
+        private String     billingMonth;
+        private BigDecimal totalAmount;
+        private String     validationError;
+        private UpsertType upsertType;
+    }
+
+    public record UploadPreviewResult(
+            int totalCount,
+            int errorCount,
+            List<UploadPreviewRow> rows
+    ) {}
+
+    public record UploadConfirmResult(
+            int insertCount,
+            int updateCount
+    ) {}
+
+    public enum UpsertType {
+        INSERT, UPDATE, ERROR
     }
 }

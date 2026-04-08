@@ -5,23 +5,20 @@ server:
 spring:
   application:
     name: onepass
-<<<<<<< HEAD
-  profiles:
-    active: dev
-=======
 
   profiles:
     active: dev
 
->>>>>>> e9d88f9f25b225b57753bc38dec6fe1dea0382f0
   jpa:
     open-in-view: false
+    hibernate:
+      ddl-auto: create
+    show-sql: true
     properties:
       hibernate:
         format_sql: true
-<<<<<<< HEAD
-=======
+        naming:
+          physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
 
->>>>>>> e9d88f9f25b225b57753bc38dec6fe1dea0382f0
   thymeleaf:
     encoding: UTF-8
