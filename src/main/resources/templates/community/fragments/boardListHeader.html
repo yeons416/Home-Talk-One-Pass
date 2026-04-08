@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+
+<body>
+<!--
+    Fragment Style 1 : main banner - BoardList
+      - postList, postDetail, postForm에서 사용
+-->
+  <div th:fragment="boardListHeader(boards, boardId)" class="boardList-header">
+    <style>
+      /* 게시판 전체 헤더 */
+      .boardList-header {
+        max-width: 80%; padding: 2rem 1rem; border-bottom: 1px solid #032154; margin-bottom: 2rem;
+      }
+      .boardList-header h1 {
+        font-size: 1.5rem; color: #170124; margin-bottom: 1.5rem;
+      }
+      /* 게시판 메뉴 네비게이션 */
+      .boardList-header nav {
+        display: flex; gap: 30px;
+      }
+      .boardList-header nav a {
+        text-decoration: none; color: #9EBFDB;
+        font-weight: 600; font-size: 1.1rem;
+        padding-bottom: 10px;
+        transition: all 0.2s ease;
+        border-bottom: 3px solid transparent;
+      }
+      .boardList-header nav a:hover {
+        color: #032154;
+        border-bottom: 3px solid #032154;
+      }
+      .boardList-header nav a.active {
+        color: #032154;
+        border-bottom: 3px solid #032154;
+      }
+      .boardList-header nav a:hover:not(.active) {
+        color: #3C6ABC;
+      }
+    </style>
+
+
+    <h1>커뮤니티</h1>
+    <nav>
+      <a th:each="board : ${boards}" th:text="${board.name}"
+         th:href="@{/community/{code}(code=${board.code})}"
+         th:classappend="${boardId == board.id ? 'active' : ''}">게시판 이름</a>
+    </nav>
+  </div>
+</body>
+</html>
