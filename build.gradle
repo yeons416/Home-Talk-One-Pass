@@ -36,8 +36,14 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
+
 	/* 스프링 시큐리티 */
 	implementation 'org.springframework.boot:spring-boot-starter-security'
+
+	/* Apache Poi */
+	implementation 'org.apache.poi:poi:4.1.2'
+	implementation 'org.apache.poi:poi-ooxml:4.1.2'
+
 }
 
 tasks.named('test') {

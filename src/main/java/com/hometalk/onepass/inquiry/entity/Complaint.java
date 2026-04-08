@@ -2,6 +2,7 @@ package com.hometalk.onepass.inquiry.entity;
 
 // 입주민 민원 게시판 담당
 
+import com.hometalk.onepass.auth.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;

@@ -1,5 +1,6 @@
 package com.hometalk.onepass.reservation.entity;
 
+import com.hometalk.onepass.auth.entity.User;
 import com.hometalk.onepass.facility.entity.Facility;
 import jakarta.persistence.*;
 import jakarta.persistence.Id;

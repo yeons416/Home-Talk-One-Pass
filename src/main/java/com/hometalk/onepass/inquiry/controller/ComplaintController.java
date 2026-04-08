@@ -1,5 +1,6 @@
 package com.hometalk.onepass.inquiry.controller;
 
+import com.hometalk.onepass.auth.repository.UserRepository;
 import com.hometalk.onepass.inquiry.dto.ComplaintDto;
 import com.hometalk.onepass.inquiry.entity.Complaint;
 import com.hometalk.onepass.inquiry.service.ComplaintService;

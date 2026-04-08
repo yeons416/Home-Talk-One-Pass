@@ -1,5 +1,7 @@
 package com.hometalk.onepass.reservation.service;
 
+import com.hometalk.onepass.auth.entity.User;
+import com.hometalk.onepass.auth.repository.UserRepository;
 import com.hometalk.onepass.facility.entity.Facility;
 import com.hometalk.onepass.facility.repository.FacilityRepository;
 import com.hometalk.onepass.reservation.dto.ReservationRequestDto;
