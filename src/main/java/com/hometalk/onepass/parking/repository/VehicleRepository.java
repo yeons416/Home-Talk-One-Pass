@@ -1,7 +1,7 @@
 package com.hometalk.onepass.parking.repository;
 
 import com.hometalk.onepass.parking.entity.Vehicle;
-import com.hometalk.onepass.entity.auth.Household;
+import com.hometalk.onepass.auth.entity.Household;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

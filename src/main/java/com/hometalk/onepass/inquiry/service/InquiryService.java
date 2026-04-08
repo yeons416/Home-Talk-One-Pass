@@ -1,10 +1,10 @@
 package com.hometalk.onepass.inquiry.service;
 
+import com.hometalk.onepass.auth.entity.User;
+import com.hometalk.onepass.auth.repository.UserRepository;
 import com.hometalk.onepass.inquiry.dto.InquiryDto;
 import com.hometalk.onepass.inquiry.entity.Inquiry;
 import com.hometalk.onepass.inquiry.repository.InquiryRepository;
-import com.hometalk.onepass.user.User;
-import com.hometalk.onepass.user.UserRepository;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

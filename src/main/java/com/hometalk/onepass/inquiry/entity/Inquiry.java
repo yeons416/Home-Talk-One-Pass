@@ -1,6 +1,6 @@
 package com.hometalk.onepass.inquiry.entity;
 
-import com.hometalk.onepass.user.User;
+import com.hometalk.onepass.auth.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;

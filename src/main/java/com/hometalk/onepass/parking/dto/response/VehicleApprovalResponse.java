@@ -27,6 +27,6 @@ public class VehicleApprovalResponse {
         this.status = approval.getStatus().name();
         this.rejectReason = approval.getRejectReason();
         this.processedAt = approval.getProcessedAt();
-        this.createdAt = approval.getCreateAt();
+        this.createdAt = approval.getCreatedAt();
     }
 }
