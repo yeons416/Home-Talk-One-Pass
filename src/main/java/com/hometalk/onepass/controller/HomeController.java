@@ -10,6 +10,6 @@ public class HomeController {
     @GetMapping({"/", "/home"})
     public String home(Model model) {
         // 로그인한 사용자는 대시보드로 리다이렉트 (추후 구현)
-        return "home";
+        return "index";
     }
 }
