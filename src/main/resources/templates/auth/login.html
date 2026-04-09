@@ -2,7 +2,9 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>인증 페이지</title>
+    <link rel="stylesheet" href="/css/main.css" th:href="@{/css/dashboard/style.css}">
     <style>
         .auth-container { width: 300px; margin: 50px auto; text-align: center; }
         .input-group { margin-bottom: 10px; }
@@ -13,21 +15,46 @@
 </head>
 <body>
 
-<div class="auth-container">
-    <h2>Home Talk One Pass</h2>
-    <h2>로그인</h2>
-    <form th:action="@{/login}" method="post">
-        <div class="input-group">
-            <input type="text" name="username" placeholder="아이디를 입력하세요." required>
-        </div>
-        <div class="input-group">
-            <input type="password" name="password" placeholder="비밀번호를 입력하세요." required>
-        </div>
-        <button type="submit">로그인</button>
-    </form>
+<div class="main-layout" style="display: flex;">
 
-    <div class="other-contain">
-        <p>계정이 없으신가요? <a th:href="@{/auth/register}">회원가입</a></p>
+    <!-- 1. 왼쪽 사이드바 -->
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+    <!-- 2. 오른쪽 영역 (헤더 + 본문) -->
+    <div class="main-wrapper" style="flex: 1; display: flex; flex-direction: column;">
+
+        <!-- 상단 헤더 -->
+        <div th:replace="~{fragments/header :: header}"></div>
+
+<!--        &lt;!&ndash; 상단 메뉴 &ndash;&gt;-->
+<!--        <div th:replace="~{fragments/header-menu/notificationCategoryMenu :: categoryMenu}"></div>-->
+
+        <!-- 메인 콘텐츠 -->
+        <main class="content">
+            <div style="min-height: 882px;">
+                <div class="auth-container">
+                    <h2>Home Talk One Pass</h2>
+                    <h2>로그인</h2>
+                    <form th:action="@{/login}" method="post">
+                        <div class="input-group">
+                            <input type="text" name="username" placeholder="아이디를 입력하세요." required>
+                        </div>
+                        <div class="input-group">
+                            <input type="password" name="password" placeholder="비밀번호를 입력하세요." required>
+                        </div>
+                        <button type="submit">로그인</button>
+                    </form>
+
+                    <div class="other-contain">
+                        <p>계정이 없으신가요? <a th:href="@{/auth/register}">회원가입</a></p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- 하단 푸터 삽입 -->
+        <footer th:replace="~{fragments/footer :: footer}"></footer>
+
     </div>
 </div>
 
