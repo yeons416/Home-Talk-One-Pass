@@ -1,8 +1,7 @@
 package com.hometalk.onepass.community.dto;
 
-import com.hometalk.onepass.community.entity.Board;
-import com.hometalk.onepass.community.entity.Category;
-import com.hometalk.onepass.community.entity.Post;
+import com.hometalk.onepass.auth.entity.User;
+import com.hometalk.onepass.community.entity.*;
 import lombok.*;
 
 @Getter
@@ -14,14 +13,19 @@ public class PostRequestDTO {
     private Long id;        // 수정 시 필요
     private String title;
     private String content;
-    private Long writerId;      // Member Entity 구현 전까지 유지
     private Long categoryId;
-    private boolean pinned;
 
-    public Post toEntity(Category category, Board board) {
+    private Long writerId;              // Member Entity 구현 전까지 유지
+    private PostStatus postStatus;      // 게시글 상태 변경
+    private MarketStatus marketStatus;
+    private boolean pinned;             // 관리자 상단 고정
+
+    public Post toEntity(Category category, Board board, User writer) {
         return Post.builder().title(this.title)
                 .content(this.content).pinned(this.pinned)
-                .writerId(this.writerId)
+                .postStatus(this.postStatus != null ? this.postStatus : PostStatus.ACTIVE)
+                .marketStatus(this.marketStatus!= null ? this.marketStatus : MarketStatus.SHARED)
+                .user(writer)
                 .category(category)
                 .board(board)
                 .build();

@@ -1,5 +1,6 @@
 package com.hometalk.onepass.community.entity;
 
+import com.hometalk.onepass.auth.entity.User;
 import com.hometalk.onepass.community.dto.PostRequestDTO;
 import jakarta.persistence.*;
 import lombok.*;
@@ -28,9 +29,10 @@ public class Post {
     private int viewCount = 0;
     private int commentCount = 0;
 
-    // FK들 (후에 Entity 구현하면 연결할 것)
-    // @ManyToOne @JoinColumn(name = "writer_id", referencedColumnName = "id", nullable = false)
-    private Long writerId;
+    // FK
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
+    private User user;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", referencedColumnName = "id", nullable = false)
     private Category category;
@@ -41,7 +43,12 @@ public class Post {
     @Builder.Default
     @Column(length = 20)
     @Enumerated(EnumType.STRING)
-    private PostStatus status = PostStatus.ACTIVE;
+    private PostStatus postStatus = PostStatus.ACTIVE;
+
+    @Builder.Default
+    @Column(length = 20)
+    @Enumerated(EnumType.STRING)
+    private MarketStatus marketStatus = MarketStatus.SHARED;
 
     // BaseTimeEntity 상속받으면 이 필드들은 삭제
     private LocalDateTime createdAt;
@@ -68,6 +75,11 @@ public class Post {
 
     public void softDelete() {
         this.deletedAt = LocalDateTime.now();
-        this.status = PostStatus.DELETED;
+        this.postStatus = PostStatus.DELETED;
+    }
+
+    // 상태 변경 method
+    public void updateMarketStatus(MarketStatus newStatus) {
+        this.marketStatus = newStatus;
     }
 }

@@ -1,38 +1,48 @@
 package com.hometalk.onepass.community.service;
 
+import com.hometalk.onepass.auth.entity.User;
+import com.hometalk.onepass.auth.repository.UserRepository;
 import com.hometalk.onepass.community.dto.PostRequestDTO;
 import com.hometalk.onepass.community.dto.PostListResponse;
 import com.hometalk.onepass.community.dto.PostResponseDTO;
+import com.hometalk.onepass.community.dto.PostUserRsDTO;
 import com.hometalk.onepass.community.entity.Board;
 import com.hometalk.onepass.community.entity.Category;
 import com.hometalk.onepass.community.entity.Post;
 import com.hometalk.onepass.community.repository.BoardRepository;
 import com.hometalk.onepass.community.repository.CategoryRepository;
 import com.hometalk.onepass.community.repository.PostRepository;
+import com.hometalk.onepass.community.validator.PostValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.file.AccessDeniedException;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class PostService {
+    private final UserRepository userRepository;
     private final PostRepository postRepository;
+    private final PostValidator postValidator;
     private final CategoryRepository categoryRepository;
     private final BoardRepository boardRepository;
 
     // Create
     @Transactional
-    public Long postSave(String boardCode, PostRequestDTO dto) {
-        // 1. boardCode로 게시판 ID 조회
-        Board board = boardRepository.findByCode(boardCode).orElseThrow(() ->
-                new IllegalArgumentException("해당 게시판이 존재하지 않습니다." + boardCode));
+    public Long postSave(String boardCode, PostRequestDTO dto, Long userId) { // userId 파라미터 추가
+        Board board = boardRepository.findByCode(boardCode)
+                .orElseThrow(() -> new IllegalArgumentException("해당 게시판이 존재하지 않습니다. " + boardCode));
+        Category category = categoryRepository.findById(dto.getCategoryId())
+                .orElseThrow(() -> new IllegalArgumentException("해당 카테고리가 존재하지 않습니다. " + dto.getCategoryId()));
+        // 작성자 정보 조회
+        User writer = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-        Category category = categoryRepository.findById(dto.getCategoryId()).orElseThrow(() ->
-                    new IllegalArgumentException("해당 카테고리가 존재하지 않습니다." + dto.getCategoryId()));
-        Post post = dto.toEntity(category, board);
+        Post post = dto.toEntity(category, board, writer);
+        post.setUser(writer); // 작성자 설정
         post.setBoard(board);
         return postRepository.save(post).getId();
     }
@@ -73,9 +83,11 @@ public class PostService {
     }*/
 
     // Read - 상세 페이지
-    public PostResponseDTO postDetail(Long id) {
-        Post post = postRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("게시글이 없습니다."));
-        return new PostResponseDTO(post);
+    public PostResponseDTO postDetail(Long postId, PostUserRsDTO currentUser) {
+        Post post = postRepository.findById(postId).orElseThrow(() -> new IllegalArgumentException("게시글이 없습니다."));
+        PostResponseDTO dto = new PostResponseDTO(post);
+        postValidator.setAuthority(dto, post, currentUser);
+        return dto;
     }
 
     // Update
@@ -93,19 +105,20 @@ public class PostService {
                 .build();
     }
     @Transactional
-    public void postUpdate(Long id, PostRequestDTO dto) {
+    public void postUpdate(Long id, PostRequestDTO dto, Long userId) throws AccessDeniedException {
         Post post = postRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("게시글이 없습니다."));
+        // 작성자 검증
+        postValidator.validateOwner(post, userId);
         post.update(dto);
     }
 
     // Delete
     @Transactional
-    public void deletePost(Long id) {   // user merge 후에는 userId도 필요
+    public void deletePost(Long id, Long currentUserId) {   // user merge 후에는 userId도 필요
+        // 게시글 조회
         Post post = postRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("게시글이 없습니다."));
-        // 작성자 본인 검증
-//        if (!post.getWriterId().equals(currentUserId)) {
-//            throw new IllegalStateException("삭제 권한이 없습니다.");
-//        }
+        // 권한 검증
+        postValidator.validateOwner(post, currentUserId);
         post.softDelete();
     }
 

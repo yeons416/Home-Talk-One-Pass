@@ -6,6 +6,7 @@ import com.hometalk.onepass.community.service.BoardService;
 import com.hometalk.onepass.community.service.CategoryService;
 import com.hometalk.onepass.community.service.PostService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -44,15 +45,41 @@ public class PostController {
     }
 
     // 게시글 상세 페이지
+/*  CustomUserDetails 같은 스프링 시큐리티 구현 후 주석 해제
     @GetMapping("/{boardCode}/{id:[0-9]+}")
-    public String postDetail(@PathVariable String boardCode, @PathVariable Long id, Model model) {
-        // 1. 게시글 데이터 가져오기
-        PostResponseDTO post = postService.postDetail(id);
+    public String postDetail(@PathVariable String boardCode, @PathVariable Long id,
+                             @AuthenticationPrincipal CustomUserDetails userDetails, // 추가
+                             Model model) {
+
+        // 로그인 안 한 경우도 고려하여 DTO 구성 (userDetails가 null일 수 있음)
+        PostUserRsDTO currentUser = (userDetails != null) ?
+                new PostUserRsDTO(userDetails.getUser()) : null;
+
+        // 서비스에 currentUser 전달
+        PostResponseDTO post = postService.postDetail(id, currentUser);
         model.addAttribute("post", post);
 
-        // 2. 공통 레이아웃(배너) 데이터
         BoardResponseDTO board = boardService.findByCode(boardCode);
-        addLayoutAttributes(board, null, model, false); // 공통 데이터 담기
+        addLayoutAttributes(board, null, model, false);
+        return "community/postDetail";
+    }
+ */
+    @GetMapping("/{boardCode}/{id:[0-9]+}")
+    public String postDetail(@PathVariable String boardCode, @PathVariable Long id, Model model) {
+        // [임시] 아직 로그인 연동 전이므로 테스트용 유저 정보 직접 생성
+        PostUserRsDTO tempUser = PostUserRsDTO.builder()
+                .id(1L)           // 테스트하고 싶은 유저 ID
+                .role("MEMBER")   // 또는 "ADMIN"
+                .build();
+
+        // 1. 게시글 데이터 가져오기 (tempUser를 넘겨서 editable, admin 여부를 계산함)
+        PostResponseDTO post = postService.postDetail(id, tempUser);
+        model.addAttribute("post", post);
+
+        // 2. 공통 레이아웃 데이터
+        BoardResponseDTO board = boardService.findByCode(boardCode);
+        addLayoutAttributes(board, null, model, false);
+
         return "community/postDetail";
     }
 
@@ -75,7 +102,7 @@ public class PostController {
     public String postForm(@PathVariable String boardCode, @PathVariable Long id, Model model) {
         PostRequestDTO post = postService.getPostForEdit(id);
 
-        // 2. 공통 레이아웃(배너) 데이터
+        // 공통 레이아웃(배너) 데이터
         BoardResponseDTO board = boardService.findByCode(boardCode);
         addLayoutAttributes(board, null, model, true); // 배너와 헤더는 나오지만 목록은 안 가져옴
 
@@ -85,24 +112,66 @@ public class PostController {
     }
 
     // 게시글 등록
+/*  CustomUserDetails 같은 스프링 시큐리티 구현 후 주석 해제
+    @PostMapping("/{boardCode}/save")
+    public String createPost(@PathVariable String boardCode, @ModelAttribute PostRequestDTO dto,
+                             @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Long userId = userDetails.getUserId();
+        Long id = postService.postSave(boardCode, dto, userId);
+        return "redirect:/community/" + boardCode + "/" + id;
+    }
+ */
     @PostMapping("/{boardCode}/save")
     public String createPost(@PathVariable String boardCode, @ModelAttribute PostRequestDTO dto) {
-        Long id = postService.postSave(boardCode, dto);
+        // [임시] 아직 로그인 기능이 없으므로, DB에 있는 유저 ID 1번이 작성한다고 가정합니다.
+        Long tempUserId = 1L;
+
+        Long id = postService.postSave(boardCode, dto, tempUserId);
         return "redirect:/community/" + boardCode + "/" + id;
     }
 
     // 게시글 수정
+/*  CustomUserDetails 같은 스프링 시큐리티 구현 후 주석 해제
     @PostMapping("/{boardCode}/edit/{id}")      // 폼 태그의 action 주소
+    public String updatePost(@PathVariable String boardCode, @PathVariable Long id,
+                             PostRequestDTO dto,
+                             @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        postService.postUpdate(id, dto, userDetails.getUserId());
+        return "redirect:/community/" + boardCode + "/" + id;
+    }
+ */
+    @PostMapping("/{boardCode}/edit/{id}")
     public String updatePost(@PathVariable String boardCode, @PathVariable Long id, PostRequestDTO dto) {
-        postService.postUpdate(id, dto);
+        // [임시] 수정 권한 테스트를 위한 고정 ID
+        Long tempUserId = 1L;
+
+        try {
+            postService.postUpdate(id, dto, tempUserId);
+        } catch (Exception e) {
+            // 권한이 없거나 글이 없는 경우 에러 페이지나 메시지 처리
+            return "redirect:/community/" + boardCode + "?error=denied";
+        }
+
         return "redirect:/community/" + boardCode + "/" + id;
     }
 
     // 게시글 삭제
+/*  CustomUserDetails 같은 스프링 시큐리티 구현 후 주석 해제
+    @PostMapping("/{boardCode}/delete/{id}")
+    public String deletePost(@PathVariable String boardCode, @PathVariable Long id,
+                             @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        postService.deletePost(id, userDetails.getUserId());
+        return "redirect:/community/" + boardCode;
+    }
+*/
     @PostMapping("/{boardCode}/delete/{id}")
     public String deletePost(@PathVariable String boardCode, @PathVariable Long id) {
-        postService.deletePost(id);
-        // 삭제 후 해당 게시판의 목록 리다이렉트
+        // [임시] 테스트를 위해 1번 유저라고 가정
+        Long tempUserId = 1L;
+
+        postService.deletePost(id, tempUserId);
         return "redirect:/community/" + boardCode;
     }
 

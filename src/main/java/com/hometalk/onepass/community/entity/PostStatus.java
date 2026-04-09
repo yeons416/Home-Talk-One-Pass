@@ -1,5 +1,8 @@
 package com.hometalk.onepass.community.entity;
 
+import lombok.Getter;
+
+@Getter
 public enum PostStatus {
     ACTIVE("활성"),
     HIDDEN("숨김"),

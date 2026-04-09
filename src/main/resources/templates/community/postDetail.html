@@ -13,9 +13,10 @@
     <div class="post-detail-container">
         <div class="post-header">
             <span class="category" th:text="${post.categoryName}">카테고리</span>
+            <p>상태: <span th:text="${post.marketStatusDescription}"></span></p>
             <h1 th:text="${post.title}">게시글 제목</h1>
             <div class="post-info">
-                <!-- <span th:text="${post.writer}">작성자</span> -->
+                <span th:text="${post.writer}">작성자</span>
                 <span th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd HH:mm')}">작성일</span>
                 <span th:text="${post.viewCount}">조회수</span>
             </div>
@@ -32,12 +33,16 @@
         <div class="post-footer">
             <a th:href="@{/community/{code}(code=${board.code})}" class="btn">목록</a>
 
-            <div class="auth-buttons">
+            <div class="auth-buttons" th:if="${post.editable}">
                 <a th:href="@{/community/{code}/edit/{id}(code=${board.code}, id=${post.id})}" class="btn-edit">수정</a>
                 <form th:action="@{/community/{code}/delete/{id}(code=${boardCode}, id=${post.id})}"
                       method="post" style="display:inline;" id="deleteForm">
                     <button type="button" class="btn-delete" onclick="confirmDelete()">삭제</button>
                 </form>
+            </div>
+
+            <div th:if="${post.admin}" class="admin-badge">
+                <span>관리자 권한: 게시글 상단 고정</span>
             </div>
         </div>
 
