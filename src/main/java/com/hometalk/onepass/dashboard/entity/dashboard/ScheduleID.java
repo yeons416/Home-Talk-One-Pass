@@ -1,4 +1,4 @@
-package com.hometalk.onepass.entity.dashboard;
+package com.hometalk.onepass.dashboard.entity.dashboard;
 
 import lombok.Builder;
 import org.springframework.data.annotation.Id;

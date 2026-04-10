@@ -1,4 +1,4 @@
-package com.hometalk.onepass.entity.message;
+package com.hometalk.onepass.dashboard.entity.message;
 
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
