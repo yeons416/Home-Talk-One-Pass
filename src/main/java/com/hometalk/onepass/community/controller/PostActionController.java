@@ -4,12 +4,11 @@ package com.hometalk.onepass.community.controller;
     게시글 상태 변경, 상단 고정, 조회수, 좋아요/추천 기능
  */
 
-import com.hometalk.onepass.community.entity.MarketStatus;
+import com.hometalk.onepass.community.enums.MarketStatus;
 import com.hometalk.onepass.community.service.PostActionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController

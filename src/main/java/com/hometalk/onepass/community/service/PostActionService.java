@@ -1,6 +1,6 @@
 package com.hometalk.onepass.community.service;
 
-import com.hometalk.onepass.community.entity.MarketStatus;
+import com.hometalk.onepass.community.enums.MarketStatus;
 import com.hometalk.onepass.community.entity.Post;
 import com.hometalk.onepass.community.repository.PostRepository;
 import lombok.RequiredArgsConstructor;

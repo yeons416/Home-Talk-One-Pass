@@ -1,13 +1,14 @@
 package com.hometalk.onepass.community.entity;
 
 import com.hometalk.onepass.auth.entity.User;
+import com.hometalk.onepass.common.entity.BaseSoftDeleteEntity;
 import com.hometalk.onepass.community.dto.PostRequestDTO;
+import com.hometalk.onepass.community.enums.MarketStatus;
+import com.hometalk.onepass.community.enums.PostStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -15,19 +16,33 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor     // Builder 쓸 땐 필수
 @Builder
-@Table(name = "posts")
+@Table(name = "posts", indexes = {
+        @Index(name = "idx_post_user",columnList = "user_id, created_at DESC"),
+        @Index(name = "idx_post_category", columnList = "category_id, created_at DESC"),
+})
 @SQLDelete(sql = "UPDATE posts SET deleted_at = CURRENT_TIMESTAMP, status = 'DELETED' WHERE id = ?")        // delete() 호출 시 실행될 SQL 문
 @SQLRestriction("deleted_at IS NULL")
-public class Post {
+public class Post extends BaseSoftDeleteEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(nullable = false, length = 100)
     private String title;
-    @Lob @Column(columnDefinition = "TEXT")
+
+    @Lob @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
+
+    @Column
     private boolean pinned = false;
-    private int viewCount = 0;
-    private int commentCount = 0;
+
+    @Column(columnDefinition = "integer default 0")
+    @Builder.Default
+    private Integer viewCount = 0;
+
+    @Column(columnDefinition = "integer default 0")
+    @Builder.Default
+    private Integer commentCount = 0;
 
     // FK
     @ManyToOne(fetch = FetchType.LAZY)
@@ -41,31 +56,14 @@ public class Post {
     private Board board;
 
     @Builder.Default
-    @Column(length = 20)
+    @Column(nullable = false, length = 20)
     @Enumerated(EnumType.STRING)
     private PostStatus postStatus = PostStatus.ACTIVE;
 
     @Builder.Default
-    @Column(length = 20)
+    @Column(nullable = false, length = 20)
     @Enumerated(EnumType.STRING)
     private MarketStatus marketStatus = MarketStatus.SHARED;
-
-    // BaseTimeEntity 상속받으면 이 필드들은 삭제
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-    private LocalDateTime deletedAt;
-
-    // 자동 시간 설정
-    @PrePersist
-    protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
-    }
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
-
 
     public void update(PostRequestDTO dto) {
         this.title = dto.getTitle();
@@ -73,8 +71,9 @@ public class Post {
         this.pinned = dto.isPinned();
     }
 
+    @Override
     public void softDelete() {
-        this.deletedAt = LocalDateTime.now();
+        super.softDelete();     // 부모 deletedAt 설정 실행
         this.postStatus = PostStatus.DELETED;
     }
 

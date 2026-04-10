@@ -1,4 +1,4 @@
-package com.hometalk.onepass.community.entity;
+package com.hometalk.onepass.community.enums;
 
 import lombok.Getter;
 

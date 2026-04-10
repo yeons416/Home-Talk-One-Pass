@@ -2,6 +2,8 @@ package com.hometalk.onepass.community.dto;
 
 import com.hometalk.onepass.auth.entity.User;
 import com.hometalk.onepass.community.entity.*;
+import com.hometalk.onepass.community.enums.MarketStatus;
+import com.hometalk.onepass.community.enums.PostStatus;
 import lombok.*;
 
 @Getter
