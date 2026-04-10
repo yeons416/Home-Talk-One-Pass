@@ -28,7 +28,7 @@
                     <td th:text="${post.categoryName}"></td>
                     <td><a th:href="@{/community/{code}/{id}(code=${board.code}, id=${post.id})}" th:text="${post.title}"></a></td>
                     <td th:text="${post.commentCount}"></td>
-                    <td>작성자</td>
+                    <td th:text="${post.writer}">작성자</td>
                     <td th:text="${post.viewCount}"></td>
                     <td th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd')}"></td>
                 </tr>

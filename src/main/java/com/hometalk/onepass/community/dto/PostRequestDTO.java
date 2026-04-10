@@ -27,7 +27,7 @@ public class PostRequestDTO {
                 .content(this.content).pinned(this.pinned)
                 .postStatus(this.postStatus != null ? this.postStatus : PostStatus.ACTIVE)
                 .marketStatus(this.marketStatus!= null ? this.marketStatus : MarketStatus.SHARED)
-                .user(writer)
+                .writer(writer)
                 .category(category)
                 .board(board)
                 .build();

@@ -34,10 +34,10 @@ public class PostUserRsDTO {
         this.id = post.getId();
         this.title = post.getTitle();
         this.content = post.getContent();
-        this.nickname = post.getUser().getNickname();
+        this.nickname = post.getWriter().getNickname();
         // 작성자와 현재 로그인 유저의 ID 비교
         if (currentUser != null) {
-            this.isEditable = post.getUser().getId().equals(currentUser.getId());
+            this.isEditable = post.getWriter().getId().equals(currentUser.getId());
             // 관리자 권한 확인 (User 엔티티의 UserRole 활용)
             this.isAdmin = currentUser.getRole() == User.UserRole.ADMIN;
         }

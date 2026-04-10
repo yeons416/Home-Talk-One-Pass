@@ -18,27 +18,30 @@ public class BoardService {
 
     public List<BoardResponseDTO> findAll() {
         return boardRepository.findAll().stream()
-            .map(board -> new BoardResponseDTO(board))
+            .map(board -> BoardResponseDTO.from(board))
             .collect(Collectors.toList());
     }
 
     public BoardResponseDTO findById(Long id) {
-        return boardRepository.findById(id).map(board -> new BoardResponseDTO(board)).orElse(null);
+        return boardRepository.findById(id).map(board -> BoardResponseDTO.from(board)).orElse(null);
     }
 
     public BoardResponseDTO findByCode(String code) {
-        return boardRepository.findByCode(code).map(board -> new BoardResponseDTO(board)).orElse(null);
+        return boardRepository.findByCode(code).map(BoardResponseDTO::from).orElse(null);
     }
 
     public BoardResponseDTO findByName(String name) {
-        return boardRepository.findByName(name).map(board -> new BoardResponseDTO(board)).orElse(null);
+        return boardRepository.findByName(name).map(BoardResponseDTO::from).orElse(null);
     }
 
     // 게시판 생성
     @Transactional
-    public Board save(BoardRequestDTO boardRequestDTO) {
-        Board board = new Board();
-        board.setName(boardRequestDTO.getName());
-        return boardRepository.save(board);
+    public BoardResponseDTO save(BoardRequestDTO boardRequestDTO) {
+        Board board = Board.builder()
+                .name(boardRequestDTO.getName())
+                .code(boardRequestDTO.getCode())
+                .build();
+        Board saved = boardRepository.save(board);
+        return BoardResponseDTO.from(saved);
     }
 }

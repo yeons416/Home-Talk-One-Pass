@@ -59,7 +59,7 @@ public class Post extends BaseSoftDeleteEntity {
     // FK (Post가 N인 관계)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
-    private User user;
+    private User writer;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", referencedColumnName = "id", nullable = false)
     private Category category;
@@ -81,7 +81,14 @@ public class Post extends BaseSoftDeleteEntity {
     public void update(PostRequestDTO dto) {
         this.title = dto.getTitle();
         this.content = dto.getContent();
-        this.pinned = dto.isPinned();
+    }
+
+    public void togglePinned() {
+        this.pinned = !this.pinned;
+    }
+
+    public void addPostTag(PostTag postTag) {
+        this.postTags.add(postTag);
     }
 
     @Override

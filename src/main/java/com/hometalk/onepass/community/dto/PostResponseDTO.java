@@ -20,7 +20,7 @@ public class PostResponseDTO {
     private int viewCount;
     private int commentCount;
 
-    private String writerNickname;
+    private String writer;
     private boolean editable;
     private boolean admin;
     private boolean pinned;
@@ -42,7 +42,7 @@ public class PostResponseDTO {
         this.pinned = post.isPinned();
         this.boardName = post.getCategory().getBoard().getName();
         this.categoryName = post.getCategory().getName();
-        this.writerNickname = post.getUser().getNickname();
+        this.writer = post.getWriter().getNickname();
         //this.tags = post.getTags().stream().map(tag -> tag.getName()).collect(Collectors.toList());
         this.createdAt = post.getCreatedAt();
         this.isDeleted = (post.getDeletedAt() != null);

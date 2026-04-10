@@ -19,12 +19,12 @@ public class CategoryService {
     @Transactional
     public List<CategoryResponseDTO> findAllByBoardId(Long boardId) {
         return categoryRepository.findAllByBoardId(boardId).stream()
-                .map(CategoryResponseDTO::new)
+                .map(CategoryResponseDTO::from)
                 .collect(Collectors.toList());
     }
 
     public CategoryResponseDTO findByCode(String categoryCode) {
-        return categoryRepository.findByCode(categoryCode).map(CategoryResponseDTO::new).orElse(null);
+        return categoryRepository.findByCode(categoryCode).map(CategoryResponseDTO::from).orElse(null);
     }
 
     // 글쓰기 모드용
@@ -32,7 +32,7 @@ public class CategoryService {
     public List<CategoryResponseDTO> findAllByBoardIdForWrite(Long boardId) {
         return categoryRepository.findAllByBoardId(boardId).stream()
                 .filter(category -> !category.getName().equals("전체")) // '전체' 제외
-                .map(CategoryResponseDTO::new)
+                .map(CategoryResponseDTO::from)
                 .collect(Collectors.toList());
     }
 }

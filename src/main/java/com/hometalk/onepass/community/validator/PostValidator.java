@@ -22,14 +22,14 @@ public class PostValidator {
             return;
         }
         // 본인 확인
-        dto.setEditable(post.getUser().getId().equals(currentUser.getId()));
+        dto.setEditable(post.getWriter().getId().equals(currentUser.getId()));
         // 관리자 확인
         dto.setAdmin(currentUser.isAdmin());
     }
 
     // 삭제/수정 시 권한이 있는지 확인하고 없으면 에러 발생
     public void validateOwner(Post post, Long currentUserId) {
-        if (currentUserId == null || !post.getUser().getId().equals(currentUserId)) {
+        if (currentUserId == null || !post.getWriter().getId().equals(currentUserId)) {
             throw new IllegalStateException("해당 권한이 없습니다.");
         }
     }

@@ -17,10 +17,10 @@ public class CategoryRequestDTO {
     private String code;
 
     public Category toEntity(Board board) {
-        Category category = new Category();
-        category.setName(this.name);
-        category.setBoard(board);
-        category.setCode(this.code);
-        return category;
+        return Category.builder()
+                .name(this.name)
+                .board(board)
+                .code(this.code)
+                .build();
     }
 }

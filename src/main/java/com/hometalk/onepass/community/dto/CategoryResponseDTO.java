@@ -16,10 +16,12 @@ public class CategoryResponseDTO {
     private String code;
     private Long boardId;
 
-    public CategoryResponseDTO(Category category) {
-        this.id = category.getId();
-        this.name = category.getName();
-        this.code = category.getCode();
-        this.boardId = category.getBoard().getId();
+    public static CategoryResponseDTO from(Category category) {
+        return CategoryResponseDTO.builder()
+                .id(category.getId())
+                .name(category.getName())
+                .code(category.getCode())
+                .boardId(category.getBoard().getId())
+                .build();
     }
 }
