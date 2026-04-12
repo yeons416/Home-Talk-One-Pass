@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<body>
+    <div th:fragment="categoryBanner(board, categories, categoryId)" class="category-banner">
+        <style>
+            /* 카테고리 탭 */
+            .category-banner {
+                margin-top: 2rem;
+                padding: 1.5rem;
+                background-color: #ffffff;
+                border-radius: 12px;
+                box-shadow: 0 4px 15px rgba(3, 33, 84, 0.05); /* 메인 컬러 기반의 아주 연한 그림자 */
+            }
+
+            .category-banner h2 {
+                font-size: 1.3rem;
+                color: #032154;
+                margin-bottom: 1.2rem;
+            }
+
+            .category-banner nav {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+
+            .category-banner nav a {
+                padding: 0.6rem 1.4rem;
+                background-color: #ffffff;
+                color: #4073C9; /* 일반 버튼 컬러 */
+                border: 1px solid #9EBFDB;
+                border-radius: 8px; /* 팔레트 느낌에 맞춰 살짝 각진 둥근형 */
+                text-decoration: none;
+                font-size: 0.95rem;
+                font-weight: 500;
+                transition: all 0.2s;
+            }
+
+            /* 활성화된 카테고리 (active) - 포인트 코랄 사용 */
+            .category-banner nav a.active {
+                background-color: #EB6E57;
+                color: white;
+                border-color: #EB6E57;
+                font-weight: 700;
+                box-shadow: 0 4px 8px rgba(235, 110, 87, 0.3);
+            }
+
+            .category-banner nav a:hover:not(.active) {
+                background-color: #7ED3D9; /* 포인트 텍스트(민트계열) 컬러로 호버 */
+                border-color: #7ED3D9;
+                color: white;
+            }
+        </style>
+
+
+        <h2 th:text="${board.name}">광장</h2>
+        <nav>
+            <a href="#" th:href="@{/community/{boardCode}(boardCode=${board.code})}"
+                th:classappend="${categoryId == null ? 'active' : ''}">전체</a>
+
+            <th:block th:each="category : ${categories}">
+            <a th:if="${category.code != 'all'}"
+               href="#" th:href="@{/community/{boardCode}/{categoryCode}(boardCode=${board.code}, categoryCode=${category.code})}"
+               th:text="${category.name}"
+               th:classappend="${categoryId == category.id ? 'active' : ''}">카테고리명</a>
+            </th:block>
+        </nav>
+    </div>
+</body>
+</html>

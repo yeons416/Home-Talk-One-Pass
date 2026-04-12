@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>공지 상세</title>
+    <style>
+
+        .notice-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #ddd;
+        }
+
+        .notice-table td {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+        }
+
+        .badge-important {
+            width: 80px;
+            text-align: center;
+        }
+
+        .badge-important span {
+            background-color: rgb(174, 34, 41);
+            border-radius: 15px;
+            padding: 3px 12px;
+            font-size: 11px;
+            color: white;
+        }
+
+        .notice-title {
+            width: auto;
+        }
+
+        .create, .update {
+            width: 120px;
+            text-align: center;
+        }
+
+        .notice-view {
+            width: 80px;
+            text-align: center;
+        }
+
+
+
+
+        .notice-box {
+            border: 1px solid #ddd;
+            min-height: 300px;
+            padding: 20px;
+            margin: 10px 0;
+        }
+
+        .notice-nav-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .notice-nav-table td {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+        }
+
+        .notice-nav-table tr td:first-child {
+            width: 60px;
+            text-align: center;
+        }
+
+        .notice-nav-title {
+            width: auto;
+        }
+
+        .notice-nav-created, .notice-nav-updated {
+            width: 120px;
+            text-align: center;
+        }
+
+        .notice-nav-view {
+            width: 80px;
+            text-align: center;
+        }
+
+
+    </style>
+
+</head>
+<body>
+<div th:replace="fragments/noticeHeader :: notice-page-header"></div>
+
+
+<table class="notice-table">
+    <tr>
+        <td class="badge-important"><span>중요</span></td>
+        <td class="notice-title">공지 제목</td>
+        <td class="create">작성일시</td>
+        <td class="update">수정일시</td>
+        <td class="notice-view">3,021</td>
+    </tr>
+</table>
+
+<hr>
+
+
+<div class="notice-box">
+    <div class="content">
+        <div class="image">
+            <img src="" alt="사진" width="200" height="150">
+        </div>
+        <p>공지 내용</p>
+    </div>
+</div>
+
+
+<table class="notice-nav-table">
+    <tr class="prev-notice">
+        <td>이전글</td>
+        <td class="notice-nav-title">이전글 제목</td>
+        <td class="notice-nav-created">게시일시</td>
+        <td class="notice-nav-updated">수정일시</td>
+        <td class="notice-nav-view">조회수</td>
+    </tr>
+    <tr class="next-notice">
+        <td>다음글</td>
+        <td class="notice-nav-title">다음글 제목</td>
+        <td class="notice-nav-created">게시일시</td>
+        <td class="notice-nav-updated">수정일시</td>
+        <td class="notice-nav-view">조회수</td>
+    </tr>
+</table>
+
+</body>
+</html>

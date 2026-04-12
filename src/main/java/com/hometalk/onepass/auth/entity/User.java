@@ -1,6 +1,8 @@
 package com.hometalk.onepass.auth.entity;
 
 import com.hometalk.onepass.common.entity.BaseSoftDeleteEntity;
+import com.hometalk.onepass.community.entity.Comment;
+import com.hometalk.onepass.community.entity.Post;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -50,6 +52,13 @@ public class User extends BaseSoftDeleteEntity {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<SocialAccount> socialAccounts = new ArrayList<>();
+
+    // community
+    @OneToMany(mappedBy = "writer", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Post> posts = new ArrayList<>();
+
+    @OneToMany(mappedBy = "writer", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Comment> comments = new ArrayList<>();
 
     @Builder
     public User(String name, String nickname, String email,

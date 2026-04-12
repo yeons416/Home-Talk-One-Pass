@@ -27,3 +27,6 @@ logging:
     com.hometalk: DEBUG     # 프로젝트 패키지 - 상세 로그 출력
     org.hibernate.SQL: DEBUG    # hibernate SQL 쿼리 로그
 
+file:
+  upload:
+    path: ./uploads

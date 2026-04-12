@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>공지 목록</title>
+
+    <style>
+
+
+
+        .notice-list {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .notice-list th {
+            background: #e8e8e8;
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            font-size: 13px;
+            text-align: center;
+        }
+
+        .notice-list td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            font-size: 13px;
+        }
+
+        .notice-list td:first-child {
+            text-align: center;
+            width: 80px;
+        }
+
+        .notice-list td:nth-child(3),
+        .notice-list td:nth-child(4),
+        .notice-list td:nth-child(5) {
+            text-align: center;
+            width: 120px;
+        }
+
+        .notice-list td a {
+            text-decoration: none;
+            color: #222;
+        }
+
+        .badge-important span {
+        background-color: rgb(174, 34, 41);
+        border-radius: 15px;
+        padding: 3px 12px;
+        font-size: 11px;
+        color: white;
+        }
+
+        .badge-facility span {
+        background-color: rgb(201, 106, 37);
+        border-radius: 15px;
+        padding: 3px 12px;
+        font-size: 11px;
+        color: white;
+        }
+
+        .badge-normal span {
+        background-color: rgb(59, 65, 105);
+        border-radius: 15px;
+        padding: 3px 12px;
+        font-size: 11px;
+        color: white;
+        }
+
+        .badge-safety span {
+        background-color: rgb(39, 139, 88);
+        border-radius: 15px;
+        padding: 3px 12px;
+        font-size: 11px;
+        color: white;
+        }
+
+        .bottom-wrap {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+        margin-top: 20px;
+        }
+
+
+        .notice-search {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        position: absolute;
+        right: 0;
+    }
+
+        .notice-search input {
+        border: 1px solid #ddd;
+        padding: 5px 10px;
+        font-size: 13px;
+        }
+
+        .btn-search {
+        border: 1px solid #ddd;
+        background: white;
+        padding: 5px 10px;
+        cursor: pointer;
+        }
+
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 20px;
+        }
+
+        .pagination a {
+            text-decoration: none;
+            color: #333;
+            padding: 4px 10px;
+            font-size: 13px;
+        }
+
+        .pagination a:hover {
+            color: #3b4169;
+        }
+    </style>
+</head>
+<body>
+<div th:replace="fragments/noticeHeader :: notice-page-header"></div>
+
+
+<table class="notice-list">
+    <thead class="notice-header">
+    <tr>
+        <th>분류</th>
+        <th>제목</th>
+        <th>게시일시</th>
+        <th>수정일시</th>
+        <th>조회수</th>
+    </tr>
+    </thead>
+    <tbody class="notice-lists">
+    <tr>
+        <td class="badge-important"><span>중요</span></td>
+        <td><a href="#">중요 공지 제목</a></td>
+        <td>2026-03-21</td>
+        <td>2026-03-23</td>
+        <td>3,021</td>
+    </tr>
+    <tr>
+        <td class="badge-facility"><span>시설</span></td>
+        <td><a href="#">시설 공지 제목</a></td>
+        <td></td>
+        <td></td>
+        <td></td>
+    </tr>
+    <tr>
+        <td class="badge-safety"><span>안전</span></td>
+        <td><a href="#">안전 공지 제목</a></td>
+        <td></td>
+        <td></td>
+        <td></td>
+    </tr>
+    <tr>
+        <td class="badge-normal"><span>일반</span></td>
+        <td><a href="#">일반 공지 제목</a></td>
+        <td></td>
+        <td></td>
+        <td></td>
+    </tr>
+    <tr>
+        <td class="badge-normal"><span>일반</span></td>
+        <td><a href="#">일반 공지 제목</a></td>
+        <td></td>
+        <td></td>
+        <td></td>
+    </tr>
+    <tr>
+        <td class="badge-normal"><span>일반</span></td>
+        <td><a href="#">일반 공지 제목</a></td>
+        <td></td>
+        <td></td>
+        <td></td>
+    </tr>
+    </tbody>
+</table>
+
+<div class="bottom-wrap">
+    <div class="pagination">
+        <a href="#">&lt;</a>
+        <a href="#">1</a>
+        <a href="#">2</a>
+        <a href="#">3</a>
+        <a href="#">4</a>
+        <a href="#">5</a>
+        <a href="#">6</a>
+        <a href="#">&gt;</a>
+    </div>
+    <div class="notice-search">
+        <span class="search-label">제목</span>
+        <input type="text" name="keyword">
+        <button type="button" class="btn-search">🔍</button>
+    </div>
+</div>
+
+
+</body>
+</html>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>민원 상세 정보</title>
+</head>
+<body>
+<h2 th:text="${complaint.title}"></h2>
+<p>분류: <span th:text="${complaint.category}"></span></p>
+<p>작성일: <span th:text="${#temporals.format(complaint.createdAt, 'yyyy-MM-dd HH:mm')}"></span></p>
+<p>상태: <span th:text="${complaint.status}"></span></p>
+<hr>
+
+<div th:text="${complaint.content}">내용이 출력됩니다.</div>
+
+<div th:if="${not #lists.isEmpty(complaint.attachments)}">
+    <h3>첨부파일</h3>
+    <ul>
+        <li th:each="file : ${complaint.attachments}">
+            <img th:src="@{/api/complaints/display(fileName=${file.storedFileName})}" width="300"><br>
+            <a th:href="@{/api/complaints/download/{id}(id=${file.id})}" th:text="${file.originFileName}"></a>
+        </li>
+    </ul>
+</div>
+
+<div th:if="${complaint.answer != null}">
+    <hr>
+    <h3>관리자 답변</h3>
+    <p th:text="${complaint.answer}"></p>
+</div>
+
+<hr>
+<a th:href="@{/complaints}">목록보기</a>
+<a th:href="@{/complaints/edit/{id}(id=${complaint.id})}">수정하기</a>
+</body>
+</html>

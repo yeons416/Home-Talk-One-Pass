@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HomeTOP Community</title>
+    <link rel="stylesheet" href="/css/style.css" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{community/fragments/boardListHeader :: boardListHeader(boards=${boards}, boardId=${boardId})}"></div>
+<div th:replace="~{community/fragments/categoryBanner :: categoryBanner(board=${board}, categories=${categories}, categoryId=${categoryId})}"></div>
+
+<div class="post-detail-container">
+    <div class="post-header">
+        <span class="category" th:text="${post.categoryName}">카테고리</span>
+        <h1 th:text="${post.title}">게시글 제목</h1>
+        <div class="post-info">
+            <!-- <span th:text="${post.writer}">작성자</span> -->
+            <span th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd HH:mm')}">작성일</span>
+            <span th:text="${post.viewCount}">조회수</span>
+        </div>
+    </div>
+
+    <hr>
+
+    <div class="post-content">
+        <p th:utext="${post.content}">게시글 내용</p>
+    </div>
+
+    <hr>
+
+    <div class="post-footer">
+        <a th:href="@{/community/{code}(code=${board.code})}" class="btn">목록</a>
+
+        <div class="auth-buttons">
+            <a th:href="@{/community/{code}/edit/{id}(code=${board.code}, id=${post.id})}" class="btn-edit">수정</a>
+            <form th:action="@{/community/{code}/delete/{id}(code=${boardCode}, id=${post.id})}"
+                  method="post" style="display:inline;" id="deleteForm">
+                <button type="button" class="btn-delete" onclick="confirmDelete()">삭제</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="comment-section">
+        <h3>댓글</h3>
+        <p>댓글 기능 준비 중...</p>
+    </div>
+</div>
+
+<script>
+    function confirmDelete() {
+        if (confirm("정말로 이 게시글을 삭제하시겠습니까? \n삭제된 글은 목록에서 사라집니다.")) {
+            document.getElementById('deleteForm').submit();
+        }
+    }
+</script>
+</body>
+</html>

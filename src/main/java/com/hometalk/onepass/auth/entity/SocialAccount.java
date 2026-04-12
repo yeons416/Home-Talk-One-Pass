@@ -1,6 +1,6 @@
 package com.hometalk.onepass.auth.entity;
-
 import com.hometalk.onepass.common.entity.BaseTimeEntity;
+
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;

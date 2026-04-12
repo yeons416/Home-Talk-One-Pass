@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>차량 승인 관리</title>
+  <meta name="_csrf" th:content="${_csrf.token}">
+  <meta name="_csrf_header" th:content="${_csrf.headerName}">
+  <style>
+    /* CSS는 나중에 추가 */
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2 class="page-title">차량 승인 관리</h2>
+
+  <!-- 탭 -->
+  <div class="tab-group">
+    <button type="button" class="tab-btn active" onclick="switchTab('PENDING', event)">대기</button>
+    <button type="button" class="tab-btn" onclick="switchTab('APPROVED', event)">승인</button>
+    <button type="button" class="tab-btn" onclick="switchTab('REJECTED', event)">반려</button>
+  </div>
+
+  <!-- 차량 목록 테이블 -->
+  <table id="vehicleTable">
+    <thead>
+    <tr>
+      <th>차량 번호</th>
+      <th>등록자</th>
+      <th>세대</th>
+      <th>등록일</th>
+      <th>서류</th>
+      <th>관리</th>
+    </tr>
+    </thead>
+    <tbody id="vehicleList">
+    <tr>
+      <td colspan="6">승인 대기 중인 차량이 없습니다.</td>
+    </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- 서류 확인 모달 -->
+<div id="documentModal" style="display:none;">
+  <div class="modal-content">
+    <h3>증빙 서류</h3>
+    <img id="documentImage" src="" alt="증빙 서류"
+         onerror="this.style.display='none'; document.getElementById('documentError').style.display='block'">
+    <p id="documentError" style="display:none;">서류를 불러올 수 없습니다.</p>
+    <div class="modal-actions">
+      <button type="button" onclick="closeDocumentModal()">닫기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 반려 사유 모달 -->
+<div id="rejectModal" style="display:none;">
+  <div class="modal-content">
+    <h3>반려 사유</h3>
+    <textarea id="rejectReason" placeholder="반려 사유를 입력해주세요."></textarea>
+    <span class="error-msg" id="rejectReasonError"></span>
+    <div class="modal-actions">
+      <button type="button" onclick="closeRejectModal()">취소</button>
+      <button type="button" onclick="confirmReject()">반려</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+  const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+  let currentStatus = 'PENDING';
+  let selectedApprovalId = null;
+
+  function postFetch(url, body) {
+      return fetch(url, {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+              [csrfHeader]: csrfToken
+          },
+          body: JSON.stringify(body)
+      });
+  }
+
+  // 탭 전환
+  function switchTab(status, e) {
+      currentStatus = status;
+      const tabBtns = document.querySelectorAll('.tab-btn');
+      tabBtns.forEach(btn => btn.classList.remove('active'));
+      e.currentTarget.classList.add('active');
+      loadVehicleList();
+  }
+
+  // 차량 목록 조회
+  function loadVehicleList() {
+      const vehicleList = document.getElementById('vehicleList');
+
+      vehicleList.innerHTML = '<tr><td colspan="6">로딩 중...</td></tr>';
+
+      fetch(`/parking/vehicle/approval/list?status=${currentStatus}`)
+          .then(async res => {
+              if (!res.ok) {
+                  const msg = await res.text();
+                  throw new Error(msg || '서버 오류');
+              }
+              return res.json();
+          })
+          .then(data => {
+              vehicleList.innerHTML = '';
+
+              if (data.length === 0) {
+                  const msg = currentStatus === 'PENDING' ? '승인 대기 중인' :
+                      currentStatus === 'APPROVED' ? '승인된' : '반려된';
+                  vehicleList.innerHTML = `<tr><td colspan="6">${msg} 차량이 없습니다.</td></tr>`;
+                  return;
+              }
+
+              data.forEach(vehicle => {
+                  const rejectReason = vehicle.rejectReason ?? '';
+                  const rejectReasonShort = rejectReason.length > 10
+                      ? rejectReason.substring(0, 10) + '...'
+                      : rejectReason;
+
+                  const row = document.createElement('tr');
+                  row.innerHTML = `
+                      <td>${vehicle.vehicleNumber}</td>
+                      <td>${vehicle.userName}</td>
+                      <td>${vehicle.household}</td>
+                      <td>${vehicle.createdAt}</td>
+                      <td>
+                          ${vehicle.documentPath ? `
+                              <button type="button" class="doc-btn"
+                                      onclick="viewDocument('${vehicle.documentPath}')">보기</button>
+                          ` : '<span>서류 없음</span>'}
+                      </td>
+                      <td>
+                          ${currentStatus === 'PENDING' ? `
+                              <button type="button" class="approve-btn"
+                                      onclick="approveVehicle(${vehicle.approvalId})">승인</button>
+                              <button type="button" class="reject-btn"
+                                      onclick="openRejectModal(${vehicle.approvalId})">반려</button>
+                          ` : ''}
+                          ${currentStatus === 'REJECTED' ? `
+                              <span class="reject-reason-text" title="${rejectReason}">
+                                  ${rejectReasonShort}
+                              </span>
+                          ` : ''}
+                      </td>
+                  `;
+                  vehicleList.appendChild(row);
+              });
+          })
+          .catch(err => {
+              console.error(err);
+              vehicleList.innerHTML = '<tr><td colspan="6">데이터 조회 중 오류가 발생했습니다.</td></tr>';
+          });
+  }
+
+  // 서류 보기
+  function viewDocument(documentPath) {
+      if (!documentPath) {
+          alert('서류가 없습니다.');
+          return;
+      }
+      const img = document.getElementById('documentImage');
+      const error = document.getElementById('documentError');
+      img.style.display = 'block';
+      error.style.display = 'none';
+      img.src = documentPath;
+      document.getElementById('documentModal').style.display = 'block';
+  }
+
+  // 서류 모달 닫기
+  function closeDocumentModal() {
+      const img = document.getElementById('documentImage');
+      img.src = '';
+      img.style.display = 'block';
+      document.getElementById('documentError').style.display = 'none';
+      document.getElementById('documentModal').style.display = 'none';
+  }
+
+  // 승인 처리
+  function approveVehicle(approvalId) {
+      if (!confirm('승인 처리하시겠습니까?')) return;
+
+      postFetch('/parking/vehicle/approval/approve', { approvalId: approvalId })
+          .then(async res => {
+              if (!res.ok) {
+                  const msg = await res.text();
+                  throw new Error(msg || '서버 오류');
+              }
+              alert('승인 처리가 완료되었습니다.');
+              loadVehicleList();
+          })
+          .catch(err => {
+              console.error(err);
+              alert('승인 처리 중 오류가 발생했습니다.');
+          });
+  }
+
+  // 반려 모달 열기
+  function openRejectModal(approvalId) {
+      selectedApprovalId = approvalId;
+      document.getElementById('rejectReason').value = '';
+      document.getElementById('rejectReasonError').textContent = '';
+      document.getElementById('rejectModal').style.display = 'block';
+  }
+
+  // 반려 모달 닫기
+  function closeRejectModal() {
+      document.getElementById('rejectModal').style.display = 'none';
+  }
+
+  // 반려 처리
+  function confirmReject() {
+      const reason = document.getElementById('rejectReason').value.trim();
+      if (!reason) {
+          document.getElementById('rejectReasonError').textContent = '반려 사유를 입력해주세요.';
+          return;
+      }
+
+      postFetch('/parking/vehicle/approval/reject', {
+          approvalId: selectedApprovalId,
+          rejectReason: reason
+      })
+          .then(async res => {
+              if (!res.ok) {
+                  const msg = await res.text();
+                  throw new Error(msg || '서버 오류');
+              }
+              alert('반려 처리가 완료되었습니다.');
+              closeRejectModal();
+              loadVehicleList();
+          })
+          .catch(err => {
+              console.error(err);
+              alert('반려 처리 중 오류가 발생했습니다.');
+          });
+  }
+
+  loadVehicleList();
+</script>
+
+</body>
+</html>

@@ -2,6 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>인증 페이지</title>
     <style>
         .auth-container { width: 300px; margin: 50px auto; text-align: center; }
@@ -10,6 +11,7 @@
         button { width: 100%; padding: 10px; background-color: #007bff; color: white; border: none; cursor: pointer; }
         .switch-link { margin-top: 15px; font-size: 14px; }
     </style>
+
 </head>
 <body>
 
@@ -18,7 +20,7 @@
     <h2>로그인</h2>
     <form th:action="@{/login}" method="post">
         <div class="input-group">
-            <input type="text" name="username" placeholder="아이디를 입력하세요." required>
+            <input type="text" name="loginId" placeholder="아이디를 입력하세요." required>
         </div>
         <div class="input-group">
             <input type="password" name="password" placeholder="비밀번호를 입력하세요." required>
@@ -30,6 +32,18 @@
         <p>계정이 없으신가요? <a th:href="@{/auth/register}">회원가입</a></p>
     </div>
 </div>
+
+
+<script th:if="${param.error}" th:inline="javascript">
+
+    // 1. 알림창 띄우기
+    alert("아이디 또는 비밀번호가 일치하지 않습니다.");
+
+    // 2. 확인(OK)을 누르면 다시 깨끗한 로그인 페이지로 리다이렉트
+    window.location.href = window.location.pathname;
+    /*]]>*/
+</script>
+
 
 </body>
 </html>

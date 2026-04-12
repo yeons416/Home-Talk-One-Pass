@@ -1,5 +1,6 @@
 package com.hometalk.onepass.common.entity;
 
+
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
 import lombok.Getter;

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HomeTOP Community</title>        <!-- 제목도 게시판에 따라 변경되도록 -->
+    <link rel="stylesheet" href="/css/community/poststyle.css" th:href="@{/css/community/poststyle.css}">
+</head>
+<body>
+<div th:replace="~{community/fragments/boardListHeader :: boardListHeader(boards=${boards}, boardId=${boardId})}"></div>
+<div th:replace="~{community/fragments/categoryBanner :: categoryBanner(board=${board}, categories=${categories}, categoryId=${categoryId})}"></div>
+
+<div class="container">
+    <h2 th:text="${board.name} + ' 글쓰기'">커뮤니티 글쓰기</h2>
+
+    <form th:action="@{/community/{code}/save(code=${board.code})}" method="post" id="postForm" th:object="${post}">
+        <div class="form-group">
+            <label>태그 선택: </label>
+            <input type="checkbox" name="tags" value="공지"> 공지
+            <input type="checkbox" name="tags" value="질문"> 질문
+            <input type="checkbox" name="tags" value="정보"> 정보
+        </div>
+
+        <div class="form-group">
+            <select th:field="*{categoryId}" required>
+                <option value="">카테고리 선택</option>
+                <option th:each="category : ${categories}" th:value="${category.id}"
+                        th:text="${category.name}">카테고리 명</option>
+            </select>
+        </div>
+
+        <input type="hidden" th:field="*{id}">
+
+        <div class="form-group">
+            <input type="text" id="title" th:field="*{title}" placeholder="제목을 입력하세요 (최대 50자)"
+                   maxlength="50" required style="width: 100%;">
+            <small><span id="charCount">0</span>/50</small>
+        </div>
+
+        <div style="background: #f4f4f4; padding: 5px; border: 1px solid #ccc;">
+            <small>에디터 툴바 영역 (폰트, 정렬 등 구현 예정)</small>
+        </div>
+
+        <div class="form-group">
+            <textarea th:field="*{content}" rows="15" placeholder="내용을 입력하세요"
+                      style="width: 100%;" required></textarea>
+        </div>
+
+        <div class="button-group" style="margin-top: 20px;">
+            <a th:href="@{/community/{code}(code=${board.code})}" onclick="return confirmCancel()">취소</a>
+
+            <button type="button"
+                    th:if="${post.id == null}"      <!-- 신규 작성 시에만 버튼 보이도록 -->
+                    onclick="saveTemp()">임시저장</button>
+            <button type="button" id="btnLoadTemp" class="btn-sub">임시저장 글 (<span th:text="${tempCount}">0</span>)</button>
+
+            <button type="submit">등록</button>
+        </div>
+
+        <div id="tempListModal" style="display:none;" class="temp-modal">
+            <div class="modal-content">
+                <h3>임시저장 글 <span class="close-modal">&times;</span></h3>
+                <ul id="tempListArea">
+                </ul>
+            </div>
+        </div>
+
+        <input type="hidden" name="isTemp" id="isTemp" value="false">
+    </form>
+</div>
+
+<script>
+    // 제목 글자 수 카운트
+    document.getElementById('title').addEventListener('input', function() {
+        document.getElementById('charCount').innerText = this.value.length;
+    });
+
+    // 취소 버튼 컨펌
+    function confirmCancel() {
+        if (confirm("작성 중인 내용을 중단하고 목록으로 돌아가시겠습니까?\n(임시저장된 내용은 보존됩니다.)")) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    // 임시저장 로직
+    function saveTemp() {
+        document.getElementById('isTemp').value = "true";
+        alert("임시저장 되었습니다. (목록에는 숨김 처리됩니다)");
+        document.getElementById('postForm').submit();
+    }
+</script>
+</body>
+</html>
