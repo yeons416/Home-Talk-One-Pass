@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>회원가입 - Home Talk One Pass</title>
     <style>
-        .auth-container { width: 350px; margin: 50px auto; text-align: center; border: 1px solid #ddd; padding: 20px; border-radius: 8px; }
+        .auth-container { width: 350px; margin: 30px auto; text-align: center; border: 1px solid #ddd; padding: 20px; border-radius: 8px; }
         .input-group { margin-bottom: 15px; text-align: left; }
         .input-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
         input { width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
@@ -18,41 +18,78 @@
     <h2>회원가입</h2>
     <p>서비스 이용을 위해 정보를 입력해주세요.</p>
 
-    <form th:action="@{/auth/register/signup}" method="post">
+    <!-- *{} = 객체를 전달받은 경우 매핑    -->
+    <form th:action="@{/auth/register/signup}" th:object="${signUpDTO}" method="post">
+        <input type="hidden" name="currentStep" th:value="${step}" />
 
-        <div class="input-group">
-            <label for="email">이메일</label>
-            <input type="email" id="email" name="email" placeholder="example@hometalk.com" required>
+        <div th:if="${step == 1}">
+            <div class="input-group">
+                <label for="email">이메일</label>
+                <input type="email" th:field="*{email}" placeholder="example@hometalk.com" required>
+            </div>
+
+            <div class="input-group">
+                <label for="loginId">아이디</label>
+                <input type="text" th:field="*{loginId}" placeholder="아이디를 입력하세요" required>
+            </div>
+
+            <div class="input-group">
+                <label for="phoneNumber">연락처</label>
+                <input type="text" th:field="*{phoneNumber}" placeholder="휴대폰 번호(-)제외" required>
+            </div>
+
+            <div class="input-group">
+                <label for="password">비밀번호</label>
+                <input type="password" th:field="*{password}" placeholder="비밀번호를 입력하세요" required>
+            </div>
+
+            <div class="input-group">
+                <label for="name">이름</label>
+                <input type="text" th:field="*{name}" placeholder="실명을 입력하세요" required>
+            </div>
+
+            <div class="input-group">
+                <label for="nickname">닉네임</label>
+                <input type="text" th:field="*{nickname}" placeholder="별명을 입력해주세요" required>
+            </div>
+
+            <button type="submit" name="action" value="next">다음</button>
         </div>
 
-        <div class="input-group">
-            <label for="loginId">아이디</label>
-            <input type="text" id="loginId" name="loginId" placeholder="아이디를 입력하세요" required>
+        <div th:if="${step == 2}">
+            <input type="hidden" th:field="*{email}">
+            <input type="hidden" th:field="*{loginId}">
+            <input type="hidden" th:field="*{phoneNumber}">
+            <input type="hidden" th:field="*{password}">
+            <input type="hidden" th:field="*{name}">
+            <input type="hidden" th:field="*{nickname}">
+
+            <div class="input-group">
+                <label for="postNum"></label>
+                <input type="text" th:field="*{postNum}" placeholder="우편 번호를 입력하세요">
+                <button type="button"> 찾기 </button>
+            </div>
+
+            <div class="input-group">
+                <label for="buildingName"></label>
+                <input type="text" th:field="*{buildingName}" placeholder="주소를 입력하세요">
+            </div>
+
+            <div class="input-group">
+                <label for="dong">동</label>
+                <input type="text" th:field="*{dong}" placeholder="동을 입력하세요">
+            </div>
+
+            <div class="input-group">
+                <label for="ho">호</label>
+                <input type="text" th:field="*{ho}" placeholder="호를 입력하세요">
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button type="submit" name="action" value="prev">이전</button>
+                <button type="submit" name="action" value="complete">가입 완료</button>
+            </div>
         </div>
-
-        <div class="input-group">
-            <label for="phoneNumber">연락처</label>
-            <input type="text" id="phoneNumber" name="phoneNumber" placeholder="휴대폰 번호(-)제외" required>
-        </div>
-
-        <div class="input-group">
-            <label for="password">비밀번호</label>
-            <input type="password" id="password" name="password" placeholder="비밀번호를 입력하세요" required>
-        </div>
-
-        <div class="input-group">
-            <label for="name">이름</label>
-            <input type="text" id="name" name="name" placeholder="실명을 입력하세요" required>
-        </div>
-
-        <div class="input-group">
-            <label for="name">닉네임</label>
-            <input type="text" id="nickname" name="nickname" placeholder="별명을 입력해주세요" required>
-        </div>
-
-
-
-        <button type="submit">가입하기</button>
     </form>
 </div>
 
