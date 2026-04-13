@@ -25,5 +25,6 @@ public class Notice extends BaseTimeEntity {
     private int viewCount;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "badge", columnDefinition = "VARCHAR(20)")
     private Badge badge;
 }

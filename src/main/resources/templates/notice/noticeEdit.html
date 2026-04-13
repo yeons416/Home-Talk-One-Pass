@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>공지 수정</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --main-navy: #032154;
+            --point-coral: #EB6E57;
+            --bg-gray: #F4F7F9;
+            --border-color: #E2E8F0;
+        }
+
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background-color: var(--bg-gray);
+            padding: 20px;
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 80%;
+            margin: 20px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        h2 { color: var(--main-navy); margin-bottom: 20px; font-size: 1.3rem; font-weight: 600; }
+
+        .form-group { margin-bottom: 15px; }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: var(--main-navy);
+            font-size: 14px;
+        }
+
+        .form-group select,
+        .form-group input[type="text"] {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .form-group select:focus,
+        .form-group input[type="text"]:focus { border-color: var(--main-navy); }
+
+        .form-group small { color: #999; font-size: 12px; }
+
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            resize: vertical;
+            outline: none;
+            box-sizing: border-box;
+        }
+
+        .form-group textarea:focus { border-color: var(--main-navy); }
+
+        .button-group { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
+        .button-group-left { display: flex; align-items: center; gap: 10px; }
+        .button-group-right { display: flex; align-items: center; gap: 10px; }
+
+        .btn { display: inline-block; padding: 10px 20px; border-radius: 8px; font-weight: bold; font-size: 13px; cursor: pointer; border: none; transition: all 0.3s; text-decoration: none; }
+
+        .btn-cancel { background: white; color: #666; border: 1px solid var(--border-color); }
+        .btn-cancel:hover { background: #f5f5f5; }
+
+        .btn-file { background-color: var(--main-navy); color: white; cursor: pointer; }
+        .btn-file:hover { background-color: #051a3a; }
+
+        input[type="file"] { display: none; }
+
+        .file-name { font-size: 13px; color: #666; }
+
+        .btn-submit {
+            background-color: var(--point-coral);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(235,110,87,0.3);
+        }
+
+        .btn-submit:hover { background-color: #d65a45; }
+
+        .checkbox-group { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{fragments/NoticePageHeader :: notice-page-header}"></div>
+
+<div class="container">
+    <h2>공지 수정</h2>
+
+    <form th:action="@{/notice/{id}/edit(id=${notice.id})}" method="post" enctype="multipart/form-data">
+
+        <div class="form-group">
+            <label for="badge">분류</label>
+            <select id="badge" name="badge" required>
+                <option value="">분류 선택</option>
+                <option value="IMPORTANT" th:selected="${notice.badge.name() == 'IMPORTANT'}">중요</option>
+                <option value="FACILITY"  th:selected="${notice.badge.name() == 'FACILITY'}">시설</option>
+                <option value="SAFETY"    th:selected="${notice.badge.name() == 'SAFETY'}">안전</option>
+                <option value="NORMAL"    th:selected="${notice.badge.name() == 'NORMAL'}">일반</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="title">제목</label>
+            <input type="text" id="title" name="title"
+                   th:value="${notice.title}"
+                   placeholder="제목을 입력하세요 (최대 100자)" maxlength="100" required>
+            <small><span id="charCount" th:text="${notice.title.length()}">0</span>/100</small>
+        </div>
+
+        <div class="form-group">
+            <label>내용</label>
+            <textarea name="content" rows="15" required
+                      th:text="${notice.content}"></textarea>
+        </div>
+
+        <div class="button-group">
+            <div class="button-group-left">
+                <input type="file" id="file" name="file">
+                <label for="file" class="btn btn-file">파일 올리기</label>
+                <span id="fileName" class="file-name"></span>
+            </div>
+            <div class="button-group-right">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="isPinned" name="isPinned" value="true"
+                           th:checked="${notice.isPinned}">
+                    <label for="isPinned">상단 고정</label>
+                </div>
+                <a th:href="@{/notice/{id}(id=${notice.id})}" class="btn btn-cancel">취소</a>
+                <button type="submit" class="btn-submit">수정 완료</button>
+            </div>
+        </div>
+
+    </form>
+</div>
+
+<script>
+    document.getElementById('title').addEventListener('input', function() {
+        document.getElementById('charCount').innerText = this.value.length;
+    });
+
+    document.getElementById('file').addEventListener('change', function() {
+        document.getElementById('fileName').innerText = this.files[0]?.name || '';
+    });
+</script>
+
+</body>
+</html>
