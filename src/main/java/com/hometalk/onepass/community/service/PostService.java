@@ -9,11 +9,14 @@ import com.hometalk.onepass.community.dto.PostUserRsDTO;
 import com.hometalk.onepass.community.entity.Board;
 import com.hometalk.onepass.community.entity.Category;
 import com.hometalk.onepass.community.entity.Post;
+import com.hometalk.onepass.community.enums.PostStatus;
 import com.hometalk.onepass.community.repository.BoardRepository;
 import com.hometalk.onepass.community.repository.CategoryRepository;
 import com.hometalk.onepass.community.repository.PostRepository;
 import com.hometalk.onepass.community.validator.PostValidator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,28 +35,34 @@ public class PostService {
 
     // Create
     @Transactional
-    public Long postSave(String boardCode, PostRequestDTO dto, Long userId) { // userId 파라미터 추가
+    public Long postSave(String boardCode, PostRequestDTO dto, Long userId) {
         Board board = boardRepository.findByCode(boardCode)
                 .orElseThrow(() -> new IllegalArgumentException("해당 게시판이 존재하지 않습니다. " + boardCode));
-        Category category = categoryRepository.findById(dto.getCategoryId())
-                .orElseThrow(() -> new IllegalArgumentException("해당 카테고리가 존재하지 않습니다. " + dto.getCategoryId()));
+        Category category = null;
+        if (dto.getCategoryId() != null) {
+            category = categoryRepository.findById(dto.getCategoryId())
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 카테고리입니다."));
+        }
         // 작성자 정보 조회
         User writer = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         Post post = dto.toEntity(category, board, writer);
+
         return postRepository.save(post).getId();
     }
 
     // Read
-    public List<PostListResponse> postList(Long boardId, Long categoryId, int page) {
+    public List<PostListResponse> postList(Long boardId, Long categoryId) {
+        // 1. 상태값 설정
+        PostStatus status = PostStatus.ACTIVE;
+
         List<Post> posts;
         if (categoryId == null) {
-            // 게시판 전체 조회 (최신순)
-            posts = postRepository.findAllByBoard_IdOrderByIdDesc(boardId);
+            // boardId와 status로 조회 (OrderByIdDesc는 쿼리에 넣거나 리포지토리 메서드명에 추가)
+            posts = postRepository.findActivePosts(boardId, status);
         } else {
-            // 특정 카테고리 조회 (최신순)
-            posts = postRepository.findAllByBoard_IdAndCategory_IdOrderByIdDesc(boardId, categoryId);
+            posts = postRepository.findCategoryPosts(boardId, categoryId, status);
         }
 
         return posts.stream().map(PostListResponse::new).toList();
@@ -88,6 +97,12 @@ public class PostService {
         return dto;
     }
 
+    // 임시저장글 개수
+    @Transactional(readOnly = true)
+    public int getTempPostCount(String boardCode) {
+        return postRepository.countByBoardCodeAndPostStatus(boardCode, PostStatus.DRAFT);
+    }
+
     // Update
     // 수정 화면에 데이터를 가져오기
     public PostRequestDTO getPostForEdit(Long id) {
@@ -118,6 +133,17 @@ public class PostService {
         // 권한 검증
         postValidator.validateOwner(post, currentUserId);
         post.softDelete();
+    }
+
+    public List<PostListResponse> getTempPosts(String boardCode, Long userId) {
+        PostStatus status = PostStatus.DRAFT;
+        List<Post> posts = postRepository.findTempPosts(boardCode, userId, status);
+
+        // boardCode와 userId가 일치하고 상태가 DRAFT인 글만 최신순으로 조회
+        return postRepository.findTempPosts(boardCode, userId, PostStatus.DRAFT)
+                .stream()
+                .map(PostListResponse::new)
+                .toList();
     }
 
 }

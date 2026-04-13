@@ -1,11 +1,16 @@
 package com.hometalk.onepass.community.service;
 
+import com.hometalk.onepass.community.dto.PostListResponse;
+import com.hometalk.onepass.community.dto.PostRequestDTO;
 import com.hometalk.onepass.community.enums.MarketStatus;
 import com.hometalk.onepass.community.entity.Post;
+import com.hometalk.onepass.community.enums.PostStatus;
 import com.hometalk.onepass.community.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -32,5 +37,21 @@ public class PostActionService {
         // 3. 상태 반전 (true -> false / false -> true)
         post.togglePinned();
         return post.isPinned();
+    }
+
+    public void saveAsDraft(Long postId, PostRequestDTO dto) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("게시글이 없습니다."));
+        post.update(dto);
+        post.updateStatus(PostStatus.DRAFT);
+    }
+
+
+    // 관리자 '숨김' 처리
+    @Transactional
+    public void hidePost(Long postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("게시글 없음"));
+        post.updateStatus(PostStatus.HIDDEN);
     }
 }
