@@ -5,14 +5,12 @@ import com.hometalk.onepass.auth.entity.Household;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.SQLRestriction;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "visit_reservations")
 @Getter
 @NoArgsConstructor
-@SQLRestriction("is_deleted = false")
 public class VisitReservation extends BaseSoftDeleteEntity {
 
     @Id
@@ -58,6 +56,24 @@ public class VisitReservation extends BaseSoftDeleteEntity {
         this.purpose = purpose;
         this.reservedAt = reservedAt;
         this.status = ReservationStatus.RESERVED;
+    }
+
+    public void update(String vehicleNumber, String purpose, LocalDateTime reservedAt) {
+        if (this.status != ReservationStatus.RESERVED) {
+            throw new IllegalStateException("예약 상태에서만 수정할 수 있습니다.");
+        }
+        if (vehicleNumber != null && !vehicleNumber.isBlank()) {
+            this.vehicleNumber = vehicleNumber;
+        }
+        if (purpose != null && !purpose.isBlank()) {
+            this.purpose = purpose;
+        }
+        if (reservedAt != null) {
+            if (reservedAt.isBefore(LocalDateTime.now())) {
+                throw new IllegalArgumentException("방문 예정 시간은 현재 이후여야 합니다.");
+            }
+            this.reservedAt = reservedAt;
+        }
     }
 
     public void cancel() {

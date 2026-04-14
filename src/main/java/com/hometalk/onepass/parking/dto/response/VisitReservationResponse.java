@@ -9,7 +9,6 @@ public class VisitReservationResponse {
 
     private Long reservationId;
     private String vehicleNumber;
-    private String vehicleModel;
     private String purpose;
     private LocalDateTime reservedAt;
     private String status;
@@ -21,6 +20,8 @@ public class VisitReservationResponse {
         this.purpose = reservation.getPurpose();
         this.reservedAt = reservation.getReservedAt();
         this.status = reservation.getStatus().name();
-        this.household = reservation.getHousehold().getDong() + " " + reservation.getHousehold().getHo();
+        this.household = reservation.getHousehold() != null
+                ? reservation.getHousehold().getDong() + " " + reservation.getHousehold().getHo()
+                : "";
     }
 }
