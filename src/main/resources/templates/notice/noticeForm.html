@@ -195,95 +195,122 @@
         .modal-bottom { text-align: right; margin-top: 10px; }
         .btn-register { background: var(--point-coral); color: white; border: none; border-radius: 6px; padding: 6px 16px; font-size: 13px; cursor: pointer; }
     </style>
+    <link rel="stylesheet" th:href="@{/css/dashboard/style.css}">
 </head>
 <body>
 
-<div th:replace="~{fragments/NoticePageHeader :: notice-page-header}"></div>
+<div class="main-layout" style="display: flex; min-height: 100vh;">
 
-<div class="container">
-    <h2>공지 작성</h2>
+    <!-- 1. 왼쪽 사이드바 -->
+    <div th:replace="~{fragments/sidebar :: sidebar(currentPage='notice')}"></div>
 
-    <form th:action="@{/notice/write}" method="post" enctype="multipart/form-data" id="noticeForm">
+    <!-- 2. 오른쪽 영역 (헤더 + 본문) -->
+    <div class="main-wrapper" style="flex: 1; display: flex; flex-direction: column;">
 
-        <div class="form-group">
-            <label for="badge">분류</label>
-            <select id="badge" name="badge" required>
-                <option value="">분류 선택</option>
-                <option value="IMPORTANT">중요</option>
-                <option value="FACILITY">시설</option>
-                <option value="SAFETY">안전</option>
-                <option value="NORMAL">일반</option>
-            </select>
-        </div>
+        <!-- 상단 헤더 -->
+        <div th:replace="~{fragments/header_menu :: header_menu(currentPath01='notice', currentPath02='')}"></div>
 
-        <div class="form-group">
-            <label for="title">제목</label>
-            <input type="text" id="title" name="title" placeholder="제목을 입력하세요 (최대 100자)" maxlength="100" required>
-            <small><span id="charCount">0</span>/100</small>
-        </div>
+        <!-- 상단 메뉴 -->
+        <!--        <div th:replace="~{fragments/headerCategoryMenu :: parking}"></div>-->
 
-        <div class="form-group notice-content-wrap">
-            <label>내용</label>
-            <textarea name="content" rows="15" placeholder="내용을 입력하세요" required></textarea>
+        <div th:replace="~{fragments/NoticePageHeader :: notice-page-header}"></div>
 
-            <div class="schedule-modal" id="scheduleModal">
-                <div class="modal-header">
-                    <span>일정 등록</span>
-                    <button type="button" onclick="document.getElementById('scheduleModal').classList.remove('open')">X</button>
-                </div>
-                <div class="modal-body">
-                    <table class="modal-table">
-                        <tr>
-                            <td>일정명</td>
-                            <td><input type="text" name="scheduleName" placeholder="일정명을 입력하세요."></td>
-                        </tr>
-                        <tr>
-                            <td>시작</td>
-                            <td>
-                                <input type="date" name="startDate">
-                                <select name="startHour"><option>00</option></select>
-                                <select name="startMinute"><option>00</option></select>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>종료</td>
-                            <td>
-                                <input type="date" name="endDate">
-                                <select name="endHour"><option>23</option></select>
-                                <select name="endMinute"><option>59</option></select>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>설명</td>
-                            <td><textarea name="scheduleDesc"></textarea></td>
-                        </tr>
-                    </table>
-                    <div class="modal-bottom">
-                        <button type="button" class="btn-register">등록</button>
+        <!-- 메인 콘텐츠 -->
+        <main class="content">
+            <div class="container">
+                <h2>공지 작성</h2>
+
+                <form th:action="@{/notice/write}" method="post" enctype="multipart/form-data" id="noticeForm">
+
+                    <div class="form-group">
+                        <label for="badge">분류</label>
+                        <select id="badge" name="badge" required>
+                            <option value="">분류 선택</option>
+                            <option value="IMPORTANT">중요</option>
+                            <option value="FACILITY">시설</option>
+                            <option value="SAFETY">안전</option>
+                            <option value="NORMAL">일반</option>
+                        </select>
                     </div>
-                </div>
-            </div>
-        </div>
 
-        <div class="button-group">
-            <div class="button-group-left">
-                <input type="file" id="file" name="file">
-                <label for="file" class="btn btn-file">파일 올리기</label>
-            </div>
-            <div class="button-group-right">
-                <div class="checkbox-group">
-                    <input type="checkbox" id="isPinned" name="isPinned" value="true">
-                    <label for="isPinned">상단 고정</label>
-                </div>
-                <button type="button" class="btn-schedule"
-                        onclick="document.getElementById('scheduleModal').classList.add('open')">일정 등록</button>
-                <a th:href="@{/notice}" class="btn btn-cancel" onclick="return confirmCancel()">취소</a>
-                <button type="submit" class="btn-submit">게시</button>
-            </div>
-        </div>
+                    <div class="form-group">
+                        <label for="title">제목</label>
+                        <input type="text" id="title" name="title" placeholder="제목을 입력하세요 (최대 100자)" maxlength="100" required>
+                        <small><span id="charCount">0</span>/100</small>
+                    </div>
 
-    </form>
+                    <div class="form-group notice-content-wrap">
+                        <label>내용</label>
+                        <textarea name="content" rows="15" placeholder="내용을 입력하세요" required></textarea>
+
+                        <div class="schedule-modal" id="scheduleModal">
+                            <div class="modal-header">
+                                <span>일정 등록</span>
+                                <button type="button" onclick="document.getElementById('scheduleModal').classList.remove('open')">X</button>
+                            </div>
+                            <div class="modal-body">
+                                <table class="modal-table">
+                                    <tr>
+                                        <td>일정명</td>
+                                        <td><input type="text" name="scheduleName" placeholder="일정명을 입력하세요."></td>
+                                    </tr>
+                                    <tr>
+                                        <td>시작</td>
+                                        <td>
+                                            <input type="date" name="startDate">
+                                            <select name="startHour"><option>00</option></select>
+                                            <select name="startMinute"><option>00</option></select>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>종료</td>
+                                        <td>
+                                            <input type="date" name="endDate">
+                                            <select name="endHour"><option>23</option></select>
+                                            <select name="endMinute"><option>59</option></select>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>설명</td>
+                                        <td><textarea name="scheduleDesc"></textarea></td>
+                                    </tr>
+                                </table>
+                                <div class="modal-bottom">
+                                    <button type="button" class="btn-register">등록</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="button-group">
+                        <div class="button-group-left">
+                            <input type="file" id="file" name="file">
+                            <label for="file" class="btn btn-file">파일 올리기</label>
+                        </div>
+                        <div class="button-group-right">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="isPinned" name="isPinned" value="true">
+                                <label for="isPinned">상단 고정</label>
+                            </div>
+                            <button type="button" class="btn-schedule"
+                                    onclick="document.getElementById('scheduleModal').classList.add('open')">일정 등록</button>
+                            <a th:href="@{/notice}" class="btn btn-cancel" onclick="return confirmCancel()">취소</a>
+                            <button type="submit" class="btn-submit">게시</button>
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+        </main>
+
+        <!-- 하단 푸터 삽입 -->
+        <footer th:replace="~{fragments/footer :: footer}"></footer>
+    </div>
 </div>
+
+
+
+
 
 <script>
     document.getElementById('title').addEventListener('input', function() {

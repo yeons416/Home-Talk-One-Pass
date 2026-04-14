@@ -13,10 +13,10 @@
 <body>
 
 <div class="main-layout" style="display:flex; min-height:100vh;">
-    <div th:replace="~{fragments/sidebar :: sidebar}" th:with="menu='billing'"></div>
+    <div th:replace="~{fragments/sidebar :: sidebar(currentPage='billing')}"></div>
 
     <div class="main-wrapper" style="flex:1; display:flex; flex-direction:column;">
-        <div th:replace="~{fragments/header :: header}"></div>
+        <div th:replace="~{fragments/header_menu :: header_menu(currentPath01='billing', currentPath02='')}"></div>
 
         <!-- 카테고리 바 위치 — 미납 배너 (빈 바 고정) -->
         <header class="category-menu-bar">&nbsp;</header>

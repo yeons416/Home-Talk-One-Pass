@@ -113,60 +113,84 @@
         }
         .btn-search:hover { background-color: #051a3a; }
     </style>
+    <link rel="stylesheet" th:href="@{/css/dashboard/style.css}">
 </head>
 <body>
-<div th:replace="~{fragments/NoticePageHeader :: notice-page-header}"></div>
+<div class="main-layout" style="display: flex; min-height: 100vh;">
 
-<div class="container">
+    <!-- 1. 왼쪽 사이드바 -->
+    <div th:replace="~{fragments/sidebar :: sidebar(currentPage='notice')}"></div>
 
-    <div class="top-bar">
-        <a th:href="@{/notice/write}" class="btn-write">작성하기</a>
-    </div>
+    <!-- 2. 오른쪽 영역 (헤더 + 본문) -->
+    <div class="main-wrapper" style="flex: 1; display: flex; flex-direction: column;">
 
-    <table class="notice-list">
-        <thead>
-        <tr>
-            <th>분류</th>
-            <th>제목</th>
-            <th>게시일시</th>
-            <th>수정일시</th>
-            <th>조회수</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="notice : ${notices.content}">
-            <td th:class="'badge-' + ${notice.badge != null ? notice.badge.name().toLowerCase() : 'normal'}">
-                <span th:text="${notice.badge != null ? notice.badge.label : '일반'}">분류</span>
-            </td>
-            <td>
-                <a th:href="@{/notice/{id}(id=${notice.id})}" th:text="${notice.title}">제목</a>
-            </td>
-            <td th:text="${#temporals.format(notice.createdAt, 'yyyy-MM-dd')}"></td>
-            <td th:text="${notice.updatedAt != null && !notice.updatedAt.toLocalDate().isEqual(notice.createdAt.toLocalDate()) ? #temporals.format(notice.updatedAt, 'yyyy-MM-dd') : '-'}"></td>
-            <td th:text="${notice.viewCount}"></td>
-        </tr>
-        </tbody>
-    </table>
+        <!-- 상단 헤더 -->
+        <div th:replace="~{fragments/header_menu :: header_menu(currentPath01='notice', currentPath02='')}"></div>
 
-    <div class="bottom-wrap">
-        <div class="pagination">
-            <a th:if="${currentPage > 0}"
-               th:href="@{/notice(page=${currentPage - 1}, keyword=${keyword != null ? keyword : ''})}">&lt;</a>
+        <!-- 상단 메뉴 -->
+<!--        <div th:replace="~{fragments/headerCategoryMenu :: parking}"></div>-->
 
-            <a th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
-               th:href="@{/notice(page=${i}, keyword=${keyword != null ? keyword : ''})}"
-               th:text="${i + 1}"
-               th:classappend="${i == currentPage} ? 'active-page'"></a>
+        <div th:replace="~{fragments/NoticePageHeader :: notice-page-header}"></div>
 
-            <a th:if="${currentPage < totalPages - 1}"
-               th:href="@{/notice(page=${currentPage + 1}, keyword=${keyword != null ? keyword : ''})}">&gt;</a>
-        </div>
-        <form th:action="@{/notice}" method="get" class="notice-search">
-            <input type="text" name="keyword" th:value="${keyword}" placeholder="제목 검색">
-            <button type="submit" class="btn-search">🔍</button>
-        </form>
+        <!-- 메인 콘텐츠 -->
+        <main class="content">
+            <div class="container">
+
+                <div class="top-bar">
+                    <a th:href="@{/notice/write}" class="btn-write">작성하기</a>
+                </div>
+
+                <table class="notice-list">
+                    <thead>
+                    <tr>
+                        <th>분류</th>
+                        <th>제목</th>
+                        <th>게시일시</th>
+                        <th>수정일시</th>
+                        <th>조회수</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="notice : ${notices.content}">
+                        <td th:class="'badge-' + ${notice.badge != null ? notice.badge.name().toLowerCase() : 'normal'}">
+                            <span th:text="${notice.badge != null ? notice.badge.label : '일반'}">분류</span>
+                        </td>
+                        <td>
+                            <a th:href="@{/notice/{id}(id=${notice.id})}" th:text="${notice.title}">제목</a>
+                        </td>
+                        <td th:text="${#temporals.format(notice.createdAt, 'yyyy-MM-dd')}"></td>
+                        <td th:text="${notice.updatedAt != null && !notice.updatedAt.toLocalDate().isEqual(notice.createdAt.toLocalDate()) ? #temporals.format(notice.updatedAt, 'yyyy-MM-dd') : '-'}"></td>
+                        <td th:text="${notice.viewCount}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+
+                <div class="bottom-wrap">
+                    <div class="pagination">
+                        <a th:if="${currentPage > 0}"
+                           th:href="@{/notice(page=${currentPage - 1}, keyword=${keyword != null ? keyword : ''})}">&lt;</a>
+
+                        <a th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                           th:href="@{/notice(page=${i}, keyword=${keyword != null ? keyword : ''})}"
+                           th:text="${i + 1}"
+                           th:classappend="${i == currentPage} ? 'active-page'"></a>
+
+                        <a th:if="${currentPage < totalPages - 1}"
+                           th:href="@{/notice(page=${currentPage + 1}, keyword=${keyword != null ? keyword : ''})}">&gt;</a>
+                    </div>
+                    <form th:action="@{/notice}" method="get" class="notice-search">
+                        <input type="text" name="keyword" th:value="${keyword}" placeholder="제목 검색">
+                        <button type="submit" class="btn-search">🔍</button>
+                    </form>
+                </div>
+            </div>
+        </main>
+
+        <!-- 하단 푸터 삽입 -->
+        <footer th:replace="~{fragments/footer :: footer}"></footer>
     </div>
 </div>
+
 
 </body>
 </html>

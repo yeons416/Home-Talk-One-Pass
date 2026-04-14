@@ -60,13 +60,15 @@
                         <span th:if="${currentPath01 == 'notification'}">알람 목록</span>
                         <span th:if="${currentPath01 == 'parking'}">주차</span>
                         <span th:if="${currentPath01 == 'home'}">대시보드</span>
+                        <span th:if="${currentPath01 == 'billing'}">관리비</span>
+                        <span th:if="${currentPath01 == 'notice'}">일정관리</span>
 
                      </th:block>
             </span>
 
 
             <!-- 3. 상세 메뉴(소분류) 표시 (현재 페이지가 상세 페이지일 때만 출력) -->
-            <th:block th:if="${currentPath01 != 'home' && currentPath01 != null}">
+            <th:block th:if="${currentPath01 != 'home' && currentPath01 != null && currentPath01 != 'billing' && currentPath01 != 'notice'}">
                 <span style="margin: 0 10px; color: #2ea5ef;">&gt;</span>
                 <strong style="color: #0526ad; font-weight: 700;">
 
@@ -79,6 +81,11 @@
                     <th:block th:if="${currentPath01 == 'parking'}">
                         <span th:if="${currentPath02 == 'status'}">조회</span>
                         <span th:if="${currentPath02 == 'register'}">등록</span>
+                    </th:block>
+
+                    <!-- 관리비 -->
+                    <th:block th:if="${currentPath01 == 'billing'}">
+                        <span th:if="${currentPath02 == ''}">관리비</span>
                     </th:block>
 
                 </strong>
