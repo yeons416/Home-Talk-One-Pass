@@ -79,13 +79,13 @@ public class NoticeService {
             String fileName = UUID.randomUUID() + "_" + (original != null ? original : "file");
             String filePath = uploadPath + "/" + fileName;
 
-            file.transferTo(new File(filePath));
+            file.transferTo(new File(filePath).getAbsoluteFile());
 
             Attachment attachment = new Attachment();
             attachment.setNotice(notice);
             attachment.setFileName(fileName);
             attachment.setFilePath(filePath);
-            attachment.setFileSize((int) file.getSize());
+            attachment.setFileSize(file.getSize());
             attachmentRepository.save(attachment);
 
         } catch (IOException e) {
@@ -97,6 +97,10 @@ public class NoticeService {
     public Long updateNotice(Long id, NoticeRequestDto noticeRequestDto) {
         Notice notice = noticeRepository.findById(id)
                 .orElseThrow(() -> new NoticeNotFoundException(id));
+
+        if (noticeRequestDto.getBadge() == null) {
+            throw new IllegalArgumentException("분류를 선택해주세요.");
+        }
 
         notice.setTitle(noticeRequestDto.getTitle());
         notice.setContent(noticeRequestDto.getContent());

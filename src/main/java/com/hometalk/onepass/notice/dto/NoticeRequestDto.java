@@ -19,7 +19,6 @@ public class NoticeRequestDto {
     @NotBlank
     private String content;
 
-    @NotNull
     private Boolean isPinned;
 
     @NotNull

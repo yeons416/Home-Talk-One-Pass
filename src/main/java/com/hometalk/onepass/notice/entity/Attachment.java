@@ -19,5 +19,5 @@ public class Attachment extends BaseTimeEntity {
 
     private String fileName;
     private String filePath;
-    private int fileSize;
+    private long fileSize;
 }
