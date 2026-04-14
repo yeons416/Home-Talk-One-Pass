@@ -126,18 +126,19 @@ function pickStatus(val, label) {
 }
 
 /* ================================================================
-   API 재조회 — GET /hometop/api/billing
+   API 재조회 — GET /hometalk/api/billing
 ================================================================ */
 async function fetchBillings() {
     currentPage = 1;
 
     const params = new URLSearchParams();
     if (selYear)   params.set('year',   selYear);
-    if (selMonth)  params.set('month',  String(selMonth).padStart(2, '0'));
+    if (selMonth) params.set('month', `${selYear}-${String(selMonth).padStart(2, '0')}`);
     if (selStatus) params.set('status', selStatus);
 
     try {
-        const res  = await fetch(`${CONTEXT_PATH}/api/billing/list?${params.toString()}`);
+        params.set('householdId', HOUSEHOLD_ID || 1); // TODO: Security 연동 후 교체
+        const res = await fetch(`${CONTEXT_PATH}/api/billing/list?${params.toString()}`);
         const data = await res.json();
         allBillings = data.content ?? data;
         renderList();
@@ -203,7 +204,7 @@ function loadMore() {
 }
 
 /* ================================================================
-   고지서 모달 — GET /hometop/api/billing/{billingId}/detail
+   고지서 모달 — GET /hometalk/api/billing/{billingId}/detail
 ================================================================ */
 async function openModal(billingId) {
     try {

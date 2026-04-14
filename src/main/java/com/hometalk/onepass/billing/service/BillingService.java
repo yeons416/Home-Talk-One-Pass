@@ -206,6 +206,21 @@ public class BillingService {
         return new AdminBillingStats(total, paid, unpaid, paidRate);
     }
 
+    // 관리자: 고지서 전체 목록 조회
+    public Page<BillingSummaryResponse> getAdminList(
+            String dong,
+            Integer year,
+            String month,
+            Pageable pageable
+    ) {
+        String yearFrom = year != null ? year + "-01" : null;
+        String yearTo   = year != null ? year + "-12" : null;
+
+        return billingRepository
+                .findAllWithAdminFilter(dong, yearFrom, yearTo, month, null, null, pageable)
+                .map(b -> BillingSummaryResponse.of(b, "-"));
+    }
+
     public record AdminBillingStats(
             long total,
             long paid,

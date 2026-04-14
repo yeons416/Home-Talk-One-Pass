@@ -144,4 +144,19 @@ public class BillingApiController {
     ) {
         return ResponseEntity.ok(billingUploadService.confirmUpload(rows, adminId));
     }
+    /**
+     * 관리자 고지서 전체 목록 조회
+     * GET /api/billing/admin/list?year=2026&month=2026-03&dong=101동
+     */
+    @GetMapping("/admin/list")
+    public ResponseEntity<Page<BillingSummaryResponse>> getAdminList(
+            @RequestParam(required = false) String dong,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) String month,
+            @PageableDefault(size = 50, sort = "billingMonth", direction = Sort.Direction.DESC)
+            Pageable pageable
+    ) {
+        return ResponseEntity.ok(
+                billingService.getAdminList(dong, year, month, pageable));
+    }
 }

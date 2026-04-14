@@ -5,6 +5,7 @@ import com.hometalk.onepass.billing.dto.ResidentBillingResponse;
 import com.hometalk.onepass.billing.entity.BillingStatus;
 import com.hometalk.onepass.billing.service.BillingService.AdminBillingStats;
 
+import jakarta.servlet.http.HttpServletRequest;
 import com.hometalk.onepass.billing.service.BillingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -32,7 +33,7 @@ public class BillingPageController {
     // ─────────────────────────────────────────────
 
     @GetMapping
-    public String billingPage(Model model) {
+    public String billingPage(Model model, HttpServletRequest request) {
         // TODO: Security 완성 후 CustomUserDetails에서 추출
         Long householdId = 1L;
 
@@ -43,6 +44,9 @@ public class BillingPageController {
                 .getBillingList(householdId, null, null, BillingStatus.UNPAID,
                         PageRequest.of(0, 12, Sort.by(Sort.Direction.DESC, "billingMonth")))
                 .getContent();
+
+        model.addAttribute("currentUri", request.getRequestURI());
+        model.addAttribute("contextPath", "/hometalk");
         model.addAttribute("unpaidList",    unpaidList);
         model.addAttribute("unpaidMonths",  unpaidList.stream()
                 .map(BillingSummaryResponse::getBillingMonth)
@@ -73,9 +77,10 @@ public class BillingPageController {
     // ─────────────────────────────────────────────
 
     @GetMapping("/admin/upload")
-    public String uploadPage(Model model) {
+    public String uploadPage(Model model, HttpServletRequest request) {
+        model.addAttribute("currentUri", request.getRequestURI());
         model.addAttribute("menu",        "billing");
-        model.addAttribute("contextPath", "/hometop"); // 추가
+        model.addAttribute("contextPath", "/hometalk");
         return "billing/billing_admin_upload";
     }
 
@@ -92,7 +97,7 @@ public class BillingPageController {
             @RequestParam(required = false) BillingStatus status,
             @RequestParam(defaultValue = "false") boolean overdue,
             @RequestParam(defaultValue = "0") int page,
-            Model model
+            Model model, HttpServletRequest request
     ) {
         String currentMonth = LocalDate.now()
                 .format(DateTimeFormatter.ofPattern("yyyy-MM"));
@@ -112,6 +117,8 @@ public class BillingPageController {
         model.addAttribute("totalPages",  unpaidPage.getTotalPages());
         model.addAttribute("pageSize",    20);
         model.addAttribute("menu",        "billing");
+        model.addAttribute("currentUri", request.getRequestURI());
+        model.addAttribute("contextPath", "/hometalk");
 
         return "billing/billing_admin_unpaid";
     }

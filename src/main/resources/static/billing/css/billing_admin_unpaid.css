@@ -1,7 +1,7 @@
 /* ═══════════════════════════════════════
    미납 세대 관리 페이지 전용 스타일
-   파일 위치: static/css/billing_unpaid.css
-   공통: common.css 반드시 함께 로드
+   파일 위치: static/billing/css/billing_admin_unpaid.css
+   공통: common.css 함께 로드
 ═══════════════════════════════════════ */
 
 /* ── 페이지 타이틀 ── */

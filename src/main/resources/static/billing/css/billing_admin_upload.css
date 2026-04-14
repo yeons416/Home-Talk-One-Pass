@@ -1,7 +1,7 @@
 /* ═══════════════════════════════════════
    고지서 업로드 페이지 전용 스타일
-   파일 위치: static/css/billing_upload.css
-   공통: common.css 반드시 함께 로드
+   파일 위치: static//billing/css/billing_admin_upload.css
+   공통: common.css 함께 로드
 ═══════════════════════════════════════ */
 
 /* ── 페이지 타이틀 ── */
@@ -11,6 +11,7 @@
     color: var(--color-main);
     margin-bottom: 20px;
 }
+
 
 /* ── 업로드 존 ── */
 .upload-zone {
@@ -99,6 +100,23 @@
     color: #ccc;
     cursor: not-allowed;
     background: var(--color-surface-2);
+}
+
+/* 고지서 미리보기 모달 */
+.bill-rows {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 40px;
+}
+.bill-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--color-border-light);
+    font-size: 14px;
+}
+.bill-total-row {
+    grid-column: 1 / -1;
 }
 
 /* ── 테이블 푸터 ── */

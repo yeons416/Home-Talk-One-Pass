@@ -32,6 +32,7 @@ let pendingBilling = null;      // confirm 대기 고지서 정보
    초기화
 ================================================================ */
 document.addEventListener('DOMContentLoaded', () => {
+    fetchUnpaidList(); // 추가
     document.addEventListener('click', e => {
         if (!e.target.closest('.panel-wrap')) closeAllPanels();
     });
@@ -153,14 +154,14 @@ function pickUnpaidFilter(val, label) {
 }
 
 /* ================================================================
-   API 재조회 — GET /hometop/api/billing/admin/unpaid
+   API 재조회 — GET /hometalk/api/billing/admin/unpaid
    Controller 파라미터: year, month, dong, status, overdue, page, size
 ================================================================ */
 async function fetchUnpaidList() {
     const params = new URLSearchParams();
 
     if (selYear)  params.set('year',  selYear);
-    if (selMonth) params.set('month', String(selMonth).padStart(2, '0'));
+    if (selMonth) params.set('month', `${selYear}-${String(selMonth).padStart(2, '0')}`);
     if (selDong)  params.set('dong',  selDong);
 
     // selFilter → Controller 파라미터 변환
@@ -283,7 +284,7 @@ async function processPayment() {
 
     try {
         const res = await fetch(
-            `${CONTEXT_PATH}/api/billing/admin/${billingId}/paid`,
+            `${CONTEXT_PATH}/api/billing/admin/${billingId}/paid?adminId=1`,
             {
                 method:  'PATCH',
                 headers: { [CSRF_HEADER]: CSRF_TOKEN },

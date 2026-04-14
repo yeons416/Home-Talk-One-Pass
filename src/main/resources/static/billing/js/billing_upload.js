@@ -7,7 +7,7 @@
    - 시트   : 동별 분리 (101동, 102동, ...)
    - 컬럼 A : 동/호 (예: 101-101)
    - 컬럼 B : 당월부과액 (= total_amount)
-   - 컬럼 C~S: 항목별 금액 (18개)
+   - 컬럼 C~S: 항목별 금액 (17개)
    ================================================================ */
 
 'use strict';
@@ -26,26 +26,125 @@ const MONTHS = ['1월','2월','3월','4월','5월','6월','7월','8월',
                 '9월','10월','11월','12월'];
 
 /* ── 상태 ── */
-let validRows   = [];
-let billingMonth = null;  // 파일명에서 파싱한 부과월 (예: "2026-03")
-let selYear     = new Date().getFullYear();
-let selMonth    = null;
-let selDong     = null;
-let openPanel   = null;
-let sortKey     = null;
-let sortDir     = 1;
-let pendingFile = null;
-let uploadDone  = false;
+let validRows    = [];   // 엑셀 파싱 데이터 (업로드 전 검증용)
+let dbRows       = [];   // DB 조회 데이터
+let mode         = 'db'; // 'db' | 'excel' — 현재 테이블 표시 모드
+let billingMonth = null;
+let selYear      = new Date().getFullYear();
+let selMonth     = null;
+let selDong      = null;
+let openPanel    = null;
+let sortKey      = null;
+let sortDir      = 1;
+let pendingFile  = null;
+let uploadDone   = false;
 
 /* ================================================================
-   초기화
+   초기화 — 페이지 진입 시 DB 데이터 자동 조회
 ================================================================ */
 document.addEventListener('DOMContentLoaded', () => {
     initUploadZone();
+    fetchDbList(); // 페이지 진입 시 DB 데이터 조회
     document.addEventListener('click', e => {
         if (!e.target.closest('.panel-wrap')) closeAllPanels();
     });
 });
+
+/* ================================================================
+   DB 데이터 조회 — GET /api/billing/admin/list
+================================================================ */
+async function fetchDbList() {
+    try {
+        const params = new URLSearchParams();
+        if (selYear)  params.set('year',  selYear);
+        if (selMonth) params.set('month', `${selYear}-${String(selMonth).padStart(2,'0')}`);
+        if (selDong)  params.set('dong',  selDong);
+        params.set('size', 200);
+
+        const res  = await fetch(`${CONTEXT_PATH}/api/billing/admin/list?${params}`);
+        const data = await res.json();
+
+        // Page 응답에서 content 추출
+        const content = data.content || [];
+        dbRows = content.map((item, idx) => ({
+            num:           idx + 1,
+            household_id:  item.unit || '—',
+            dong:          item.unit ? item.unit.split(' ')[0] : '—',
+            unit:          item.unit || '—',
+            billing_month: item.billingMonth || '—',
+            total_amount:  item.totalAmount || 0,
+            status:        item.status || '—',
+            valid:         '정상',
+            upsertType:    null,
+            details:       [],
+            fromDb:        true,
+        }));
+
+        mode = 'db';
+        showDbSection();
+
+    } catch (err) {
+        console.warn('DB 목록 조회 실패', err);
+    }
+}
+
+/* ================================================================
+   DB 데이터 테이블 표시
+================================================================ */
+function showDbSection() {
+    document.getElementById('filterBar').style.display    = 'flex';
+    document.getElementById('tableSection').style.display = 'block';
+    buildDongGridFromDb();
+    renderDbTable();
+}
+
+function renderDbTable() {
+    let rows = dbRows.filter(r => {
+        if (!r.billing_month || r.billing_month === '—') return true;
+        const [y, m] = r.billing_month.split('-').map(Number);
+        if (selYear  && y !== selYear)  return false;
+        if (selMonth && m !== selMonth) return false;
+        if (selDong  && r.dong !== selDong) return false;
+        return true;
+    });
+
+    rows = rows.map((r, i) => ({ ...r, num: i + 1 }));
+
+    document.getElementById('tableMeta').innerHTML =
+        `DB 저장 데이터 · 총 ${rows.length}건`;
+    document.getElementById('tableSummary').innerHTML =
+        `필터 조건으로 조회된 결과입니다.`;
+
+    // 업로드 확정 버튼 숨기기 (DB 모드에서는 불필요)
+    const btnConfirm = document.getElementById('btnConfirm');
+    btnConfirm.style.display = 'none';
+    document.getElementById('tableBody').innerHTML = rows.length
+        ? rows.map(r => `
+        <tr>
+            <td>${r.num}</td>
+            <td>${r.unit}</td>
+            <td>${r.household_id}</td>
+            <td>${r.billing_month}</td>
+            <td>${Number(r.total_amount).toLocaleString()}원</td>
+            <td><span class="badge badge-ok">DB저장</span></td>
+            <td>—</td>
+            <td>—</td>
+        </tr>`).join('')
+        : `<tr><td colspan="8" style="text-align:center;padding:36px;color:#aaa;">
+            조회된 데이터가 없습니다.</td></tr>`;
+}
+
+function buildDongGridFromDb() {
+    const dongs = [...new Set(dbRows.map(r => r.dong).filter(d => d && d !== '—'))].sort();
+    const grid  = document.getElementById('dongGrid');
+    grid.innerHTML =
+        `<button class="chip full${!selDong ? ' selected' : ''}"
+            onclick="pickDong(null)">전체 동</button>`
+        + dongs.map(d =>
+            `<button class="chip${selDong === d ? ' selected' : ''}"
+                onclick="pickDong('${d}')">${d}</button>`
+        ).join('');
+}
 
 /* ================================================================
    업로드 존
@@ -72,15 +171,11 @@ function initUploadZone() {
    파일 처리 → 중복 확인 → 파싱
 ================================================================ */
 async function handleFile(file) {
-    pendingFile = file;
+    pendingFile  = file;
 
-    // 파일명에서 부과월 추출
-    // 2026_03.xlsx → "2026-03"
-    // 2026-03.xlsx → "2026-03"
     const nameMatch = file.name.match(/(\d{4})[_-](\d{2})/);
     billingMonth = nameMatch ? `${nameMatch[1]}-${nameMatch[2]}` : null;
 
-    // 중복 확인 API
     if (billingMonth) {
         try {
             const res  = await fetch(
@@ -116,18 +211,14 @@ function confirmDup() {
 function processFile(file) {
     const reader = new FileReader();
     reader.onload = e => {
-        const wb   = XLSX.read(e.target.result, { type: 'binary' });
+        const wb      = XLSX.read(e.target.result, { type: 'binary' });
         const allRows = [];
 
-        // 모든 시트(동) 순회
         wb.SheetNames.forEach(sheetName => {
             const ws   = wb.Sheets[sheetName];
-            const rows = XLSX.utils.sheet_to_json(ws, { defval: 0 });
-            // 시트명에서 동 추출 (예: "101동" → "101동")
+            const rows = XLSX.utils.sheet_to_json(ws, { raw: true, defval: '' });
             const dong = sheetName.replace(/동$/, '') + '동';
-            rows.forEach(row => {
-                allRows.push({ ...row, _dong: dong });
-            });
+            rows.forEach(row => allRows.push({ ...row, _dong: dong }));
         });
 
         runValidation(allRows);
@@ -142,47 +233,49 @@ function runValidation(rows) {
     uploadDone = false;
     document.getElementById('uploadDoneBanner').style.display = 'none';
 
-    validRows = rows.map((row, idx) => {
-        // 엑셀 컬럼 파싱
-        const dongHo = String(row['동/호'] || '').trim();   // "101-101"
-        const total  = Number(row['당월부과액']) || 0;
-        const dong   = row._dong || '';                      // "101동"
+    const trimmedRows = rows.map(row => {
+        const trimmed = {};
+        Object.keys(row).forEach(key => {
+            trimmed[key.trim()] = row[key];
+        });
+        return trimmed;
+    });
 
-        // 동/호 분리 (예: "101-101" → ho: "101호")
-        const hoPart = dongHo.split('-')[1] || '';
-        const unit   = dongHo ? `${dong} ${hoPart}호` : dongHo;
-
-        // household_id: 현재는 동/호로 대체 (HouseholdRepository 연동 후 교체)
-        // TODO: 서버에서 household_id 매핑
+    validRows = trimmedRows.map((row, idx) => {
+        const dongHo      = String(row['동/호'] ?? '').trim();
+        const total       = parseFloat(String(row['당월부과액']).replace(/,/g, '')) || 0;
+        const dong        = row._dong || '';
+        const hoPart      = dongHo.split('-')[1] || '';
+        const unit        = dongHo ? `${dong} ${hoPart}호` : dongHo;
         const householdId = dongHo;
+        const month       = billingMonth || '';
 
-        // 부과월: 파일명에서 파싱한 값 사용
-        const month = billingMonth || '';
-
-        // 검증
         let valid = '정상';
-        if (!dongHo || !month)   valid = '오류';
-        else if (total === 0)    valid = '금액 누락';
+        if (!dongHo || !month) valid = '오류';
+        else if (total === 0)  valid = '금액 누락';
 
-        // 항목 파싱
         const details = ITEM_COLS
-            .map(col => ({ item_name: col, item_amount: Number(row[col]) || 0 }))
+            .map(col => {
+                const raw = row[col];
+                const amt = parseFloat(String(raw).replace(/,/g, '')) || 0;
+                return { item_name: col, item_amount: amt };
+            })
             .filter(d => d.item_amount > 0);
 
         return {
             num:           idx + 1,
-            household_id:  householdId,   // "101-101" (임시)
-            dong:          dong,           // "101동"
-            unit:          unit,           // "101동 101호"
-            billing_month: month,          // "2026-03"
+            household_id:  householdId,
+            dong,
+            unit,
+            billing_month: month,
             total_amount:  total,
             valid,
             upsertType:    valid === '정상' ? 'INSERT' : null,
             details,
+            fromDb:        false,
         };
     });
 
-    // 자동 필터 세팅
     if (billingMonth) {
         const parts = billingMonth.split('-');
         selYear  = Number(parts[0]);
@@ -191,29 +284,36 @@ function runValidation(rows) {
         document.getElementById('lblMonth').textContent = MONTHS[selMonth - 1];
     }
 
-    showTableSection();
+    mode = 'excel';
+    showExcelSection();
 }
 
 /* ================================================================
-   테이블 표시 + 렌더링
+   엑셀 데이터 테이블 표시
 ================================================================ */
-function showTableSection() {
+function showExcelSection() {
     document.getElementById('filterBar').style.display    = 'flex';
     document.getElementById('tableSection').style.display = 'block';
     buildDongGrid();
+
+    // 업로드 확정 버튼 다시 표시
+    const btnConfirm = document.getElementById('btnConfirm');
+    btnConfirm.style.display = '';
+
     renderTable();
 }
 
 function renderTable() {
-let rows = validRows.filter(r => {
-    const [y, m] = r.billing_month.split('-').map(Number);
-    if (selYear  && y !== selYear)  return false;  // 추가
-    if (selMonth && m !== selMonth) return false;  // 추가
-    if (selDong  && r.dong !== selDong) return false;
-    return true;
-});
+    if (mode === 'db') { renderDbTable(); return; }
 
-    // 정렬
+    let rows = validRows.filter(r => {
+        const [y, m] = r.billing_month.split('-').map(Number);
+        if (selYear  && y !== selYear)  return false;
+        if (selMonth && m !== selMonth) return false;
+        if (selDong  && r.dong !== selDong) return false;
+        return true;
+    });
+
     if (sortKey) {
         rows = [...rows].sort((a, b) => {
             const av = a[sortKey], bv = b[sortKey];
@@ -223,10 +323,8 @@ let rows = validRows.filter(r => {
         });
     }
 
-    // num 재계산
     rows = rows.map((r, i) => ({ ...r, num: i + 1 }));
 
-    // 메타 정보
     const totalCount  = validRows.length;
     const errorCount  = validRows.filter(r => r.valid !== '정상').length;
     const normalCount = totalCount - errorCount;
@@ -333,20 +431,26 @@ function closeAllPanels() {
     openPanel = null;
 }
 
-function pickYear(y)  {
+function pickYear(y) {
     selYear = y;
     document.getElementById('lblYear').textContent = y ? y + '년' : '전체';
-    closeAllPanels(); renderTable();
+    closeAllPanels();
+    if (mode === 'db') fetchDbList();
+    else renderTable();
 }
 function pickMonth(m) {
     selMonth = m;
     document.getElementById('lblMonth').textContent = m ? MONTHS[m - 1] : '전체 월';
-    closeAllPanels(); renderTable();
+    closeAllPanels();
+    if (mode === 'db') fetchDbList();
+    else renderTable();
 }
-function pickDong(d)  {
+function pickDong(d) {
     selDong = d;
     document.getElementById('lblDong').textContent = d ? d : '전체 동';
-    closeAllPanels(); renderTable();
+    closeAllPanels();
+    if (mode === 'db') fetchDbList();
+    else renderTable();
 }
 
 /* ================================================================
@@ -359,7 +463,7 @@ function sortBy(key) {
 }
 
 /* ================================================================
-   미리보기 모달
+   미리보기 모달 (엑셀 모드 전용)
 ================================================================ */
 function openPreview(hid, month) {
     const row = validRows.find(r => r.household_id === hid && r.billing_month === month);
@@ -402,11 +506,10 @@ async function confirmUpload() {
     const errorCount = validRows.filter(r => r.valid !== '정상').length;
     if (errorCount > 0 || uploadDone) return;
 
-    // validRows → Controller UploadRow 형식으로 변환
     const uploadRows = validRows
         .filter(r => r.valid === '정상')
         .map(r => ({
-            householdId:  r.household_id,   // TODO: 실제 household PK로 교체
+            householdId:  r.household_id,
             billingMonth: r.billing_month,
             dueDate:      lastDayOfMonth(r.billing_month),
             totalAmount:  r.total_amount,
@@ -443,26 +546,30 @@ async function confirmUpload() {
         btn.disabled    = true;
         btn.classList.add('disabled');
 
+        // 업로드 확정 후 DB 데이터 재조회
+        await fetchDbList();
+
     } catch (err) {
         console.error('업로드 확정 실패', err);
         alert('업로드 중 오류가 발생했습니다. 다시 시도해 주세요.');
     }
 }
 
-/* ── 취소 ── */
+/* ── 취소 → DB 모드로 복귀 ── */
 function cancelUpload() {
     validRows    = [];
     billingMonth = null;
     uploadDone   = false;
-    document.getElementById('filterBar').style.display        = 'none';
-    document.getElementById('tableSection').style.display     = 'none';
     document.getElementById('uploadDoneBanner').style.display = 'none';
-    document.getElementById('tableBody').innerHTML            = '';
     document.getElementById('fileInput').value                = '';
     const btn = document.getElementById('btnConfirm');
     btn.textContent = '업로드 확정 ↑';
     btn.disabled    = false;
     btn.classList.remove('disabled');
+
+    // DB 모드로 복귀
+    mode = 'db';
+    fetchDbList();
 }
 
 /* ================================================================
