@@ -21,7 +21,7 @@ public class NotificationToParkingDto {
     private String vehicleNumber;      // 차량 번호 전체
 
     /* Entity --> DTO 변환 메서드 (정적 팩토리 메서드) */
-    public static NotificationToParkingDto from(Notification notification) {}
+    //public static NotificationToParkingDto from(Notification notification) {}
     //    public static BookResponseDto from(Book book) {
 //        return BookResponseDto.builder()
 //                .id(book.getId())
