@@ -29,22 +29,18 @@ public class Household {
     @Column(name = "ho", nullable = false, length = 20)
     private String ho;
 
-    @Column(name = "move_in_date", nullable = false)
-    private LocalDateTime moveInDate;
 
     @Column(name = "post_num", nullable = false)
-    private Integer postNum;
+    private String postNum;
 
     @OneToMany(mappedBy = "household", fetch = FetchType.LAZY)
     private List<User> users = new ArrayList<>();
 
     @Builder
-    public Household(String buildingName, String dong, String ho,
-                     LocalDateTime moveInDate, Integer postNum) {
+    public Household(String buildingName, String dong, String ho, String postNum) {
         this.buildingName = buildingName;
         this.dong = dong;
         this.ho = ho;
-        this.moveInDate = moveInDate;
         this.postNum = postNum;
     }
 }
