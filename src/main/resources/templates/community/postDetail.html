@@ -14,17 +14,18 @@
     <div th:if="${successMessage}" class="success-message">
         <span th:text="${successMessage}"></span>
     </div>
-    <div class="post-detail-container">
+    <div class="content-container">
         <div class="post-header">
-            <span class="category" th:text="${post.categoryName}">카테고리</span>
-            <p>상태: <span th:text="${post.marketStatusDescription}"></span></p>
-            <h1 th:text="${post.title}">게시글 제목</h1>
-            <div class="post-info">
-                <span th:text="${post.writer}">작성자</span>
-                <span th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd HH:mm')}">작성일</span>
-                <span th:text="${post.viewCount}">조회수</span>
+            <span class="category-tag" th:text="${post.categoryName}">카테고리</span>
+            <span th:text="${post.marketStatusDescription}"></span>
+            <h1 class="post-title" th:text="${post.title}">게시글 제목</h1>
 
-                <div th:if="${post.admin}" class="admin-tools" style="display: inline-block; margin-left: 10px;">
+            <div class="post-meta">
+                <span class="author" th:text="${post.writer}">작성자</span>
+                <span class="date" th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd HH:mm')}">작성일</span>
+                <span class="views">조회수 <span th:text="${post.viewCount}">0</span></span>
+
+                <div th:if="${post.admin}" class="admin-tools">
                     <button id="pinBtn" th:onclick="|togglePin(${post.id})|" class="btn-pin"
                             th:classappend="${post.pinned} ? 'active' : ''">
                     <i class="fas fa-thumbtack"></i>
@@ -38,21 +39,22 @@
                         <option th:selected="${post.marketStatus == 'RESERVED'}" value="RESERVED">예약중</option>
                         <option th:selected="${post.marketStatus == 'COMPLETED'}" value="COMPLETED">나눔완료</option>
                     </select>
+                </div>
             </div>
         </div>
 
         <hr>
 
-        <div class="post-content">
+        <div class="page-body">
             <p th:utext="${post.content}">게시글 내용</p>
         </div>
 
         <hr>
 
-        <div class="post-footer">
+        <div class="page-footer">
             <a th:href="@{/community/{code}(code=${board.code})}" class="btn">목록</a>
 
-            <div class="auth-buttons" th:if="${post.editable}">
+            <div class="edit-delete-group" th:if="${post.editable}">
                 <a th:href="@{/community/{code}/edit/{id}(code=${board.code}, id=${post.id})}" class="btn-edit">수정</a>
                 <form th:action="@{/community/{code}/delete/{id}(code=${boardCode}, id=${post.id})}"
                       method="post" style="display:inline;" id="deleteForm">

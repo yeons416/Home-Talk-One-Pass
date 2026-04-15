@@ -11,7 +11,6 @@ import com.hometalk.onepass.community.entity.Category;
 import com.hometalk.onepass.community.entity.Post;
 import com.hometalk.onepass.community.enums.PostStatus;
 import com.hometalk.onepass.community.exception.InvalidBoardCodeException;
-import com.hometalk.onepass.community.exception.PostException;
 import com.hometalk.onepass.community.exception.PostNotFoundException;
 import com.hometalk.onepass.community.repository.BoardRepository;
 import com.hometalk.onepass.community.repository.CategoryRepository;
@@ -25,7 +24,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.nio.file.AccessDeniedException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -60,6 +58,7 @@ public class PostService {
 
     // Read
     public Page<PostListResponse> postList(Long boardId, Long categoryId, int page) {
+        System.out.println("조회 요청 - boardId: " + boardId + ", page: " + page + ", status: " + PostStatus.ACTIVE);
         // 1. 상태값 설정
         PostStatus status = PostStatus.ACTIVE;
 

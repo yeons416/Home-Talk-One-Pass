@@ -34,7 +34,7 @@ public class PostController {
         BoardResponseDTO board = boardService.findByCode(boardCode);
         // 사용자의 첫 페이지(1)은 JPA에서 0으로 처리하므로 1씩 빼줘야 함
         int pageIndex = (page < 1) ? 0 : page - 1;
-        return fillCommunityModel(board, null, page, model);
+        return fillCommunityModel(board, null, pageIndex, model);
     }
 
     // 카테고리별 목록
@@ -48,7 +48,7 @@ public class PostController {
                                         : categoryService.findByCode(categoryCode);
         int pageIndex = (page < 1) ? 0 : page - 1;
 
-        return fillCommunityModel(board, category, page, model);
+        return fillCommunityModel(board, category, pageIndex, model);
     }
 
     // 게시글 상세 페이지
@@ -108,7 +108,7 @@ public class PostController {
     // 게시글 수정 폼
     @GetMapping("/{boardCode}/edit/{id}")
     public String postForm(@PathVariable String boardCode,
-                           @RequestParam(required = false) Long id,
+                           @PathVariable Long id,
                            Model model) {
         // 공통 레이아웃(배너) 데이터
         BoardResponseDTO board = boardService.findByCode(boardCode);
