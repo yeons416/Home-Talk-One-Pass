@@ -79,12 +79,12 @@ public class NoticeController {
     // 수정 페이지
     @GetMapping("/{id}/edit")
     public String noticeEditForm(@PathVariable Long id, Model model) {
-        NoticeDetailResponseDto notice = noticeService.getNotice(id);
+        NoticeDetailResponseDto notice = noticeService.getNoticeForEdit(id);
         model.addAttribute("notice", notice);
         return "notice/noticeEdit";
     }
 
-    // 수정 처리 - file 파라미터 추가
+    // 수정 처리
     @PostMapping("/{id}/edit")
     public String noticeEdit(@PathVariable Long id,
                              @ModelAttribute NoticeRequestDto noticeRequestDto,
@@ -100,7 +100,7 @@ public class NoticeController {
         return "redirect:/notice";
     }
 
-    // 파일 다운로드 - 추가
+    // 파일 다운로드
     @GetMapping("/download/{attachmentId}")
     public ResponseEntity<Resource> downloadFile(@PathVariable Long attachmentId) {
         Attachment attachment = noticeService.getAttachment(attachmentId);

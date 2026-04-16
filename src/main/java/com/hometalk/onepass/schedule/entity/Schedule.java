@@ -13,7 +13,8 @@ import java.time.LocalDateTime;
 
 @Entity
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)  // 외부에서 직접 객체 생성 못 함 (같은 패키지나 상속받은 클래스에서만 접근 가능)
+                                                    // → Builder로만 가능
 public class Schedule extends BaseTimeEntity {
 
     @Id

@@ -219,7 +219,7 @@ public class NoticeService {
                 .orElseThrow(() -> new RuntimeException("파일을 찾을 수 없습니다. id: " + attachmentId));
     }
 
-    public NoticeDetailResponseDto getNotice(Long id) {
+    public NoticeDetailResponseDto getNoticeForEdit(Long id) {
         Notice notice = noticeRepository.findById(id)
                 .orElseThrow(() -> new NoticeNotFoundException(id));
 
