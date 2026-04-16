@@ -126,7 +126,7 @@ function pickStatus(val, label) {
 }
 
 /* ================================================================
-   API 재조회 — GET /hometalk/api/billing
+   API 재조회 — GET /hometop/api/billing
 ================================================================ */
 async function fetchBillings() {
     currentPage = 1;
@@ -204,7 +204,7 @@ function loadMore() {
 }
 
 /* ================================================================
-   고지서 모달 — GET /hometalk/api/billing/{billingId}/detail
+   고지서 모달 — GET /hometop/api/billing/{billingId}/detail
 ================================================================ */
 async function openModal(billingId) {
     try {

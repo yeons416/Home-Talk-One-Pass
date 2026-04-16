@@ -1,18 +1,10 @@
 /* ================================================================
    billing_upload.js
    관리자 고지서 업로드 페이지 동작
-
-   엑셀 구조:
-   - 파일명 : 2026_03.xlsx (부과월 파싱)
-   - 시트   : 동별 분리 (101동, 102동, ...)
-   - 컬럼 A : 동/호 (예: 101-101)
-   - 컬럼 B : 당월부과액 (= total_amount)
-   - 컬럼 C~S: 항목별 금액 (17개)
-   ================================================================ */
+================================================================ */
 
 'use strict';
 
-/* ── 항목 컬럼 목록 (엑셀 실제 컬럼명) ── */
 const ITEM_COLS = [
     '일반관리비(과)', '수선유지비(과)', '청소비(과)', '승강기유지비(과)',
     '소방시설유지비(과)', '전기안전점검비(과)', '건물유지관리비(과)',
@@ -25,10 +17,9 @@ const YEARS  = [2026,2025,2024,2023,2022,2021,2020,2019,2018];
 const MONTHS = ['1월','2월','3월','4월','5월','6월','7월','8월',
                 '9월','10월','11월','12월'];
 
-/* ── 상태 ── */
-let validRows    = [];   // 엑셀 파싱 데이터 (업로드 전 검증용)
-let dbRows       = [];   // DB 조회 데이터
-let mode         = 'db'; // 'db' | 'excel' — 현재 테이블 표시 모드
+let validRows    = [];
+let dbRows       = [];
+let mode         = 'db';
 let billingMonth = null;
 let selYear      = new Date().getFullYear();
 let selMonth     = null;
@@ -40,34 +31,38 @@ let pendingFile  = null;
 let uploadDone   = false;
 
 /* ================================================================
-   초기화 — 페이지 진입 시 DB 데이터 자동 조회
+   초기화
 ================================================================ */
 document.addEventListener('DOMContentLoaded', () => {
     initUploadZone();
-    fetchDbList(); // 페이지 진입 시 DB 데이터 조회
+    fetchDbList();
     document.addEventListener('click', e => {
         if (!e.target.closest('.panel-wrap')) closeAllPanels();
     });
 });
 
 /* ================================================================
-   DB 데이터 조회 — GET /api/billing/admin/list
+   DB 데이터 조회
 ================================================================ */
 async function fetchDbList() {
     try {
         const params = new URLSearchParams();
-        if (selYear)  params.set('year',  selYear);
-        if (selMonth) params.set('month', `${selYear}-${String(selMonth).padStart(2,'0')}`);
-        if (selDong)  params.set('dong',  selDong);
+        if (selYear)  params.set('year', selYear);
+        if (selMonth && selYear) {
+            params.set('month', `${selYear}-${String(selMonth).padStart(2,'0')}`);
+        } else if (selMonth && !selYear) {
+            params.set('month', String(selMonth).padStart(2,'0'));
+        }
+        if (selDong)  params.set('dong', selDong);
         params.set('size', 200);
 
         const res  = await fetch(`${CONTEXT_PATH}/api/billing/admin/list?${params}`);
         const data = await res.json();
 
-        // Page 응답에서 content 추출
         const content = data.content || [];
         dbRows = content.map((item, idx) => ({
             num:           idx + 1,
+            billingId:     item.billingId,
             household_id:  item.unit || '—',
             dong:          item.unit ? item.unit.split(' ')[0] : '—',
             unit:          item.unit || '—',
@@ -88,8 +83,35 @@ async function fetchDbList() {
     }
 }
 
+async function openDbPreview(billingId) {
+    try {
+        const res  = await fetch(`${CONTEXT_PATH}/api/billing/${billingId}/detail`);
+        const data = await res.json();
+
+        document.getElementById('modalHeaderTitle').textContent =
+            `고지서 미리보기 — ${data.dongHo} (${data.billingMonth})`;
+        document.getElementById('modalPeriod').textContent =
+            `부과월: ${data.billingMonth} · 납부기한: ${data.dueDate}`;
+
+        document.getElementById('modalRows').innerHTML = (data.items || []).length
+            ? (data.items || []).map(d =>
+                `<div class="bill-row">
+                    <span>${d.itemName}</span>
+                    <span>${Number(d.itemAmount).toLocaleString()}원</span>
+                </div>`).join('')
+            : '<div style="font-size:13px;color:#aaa;text-align:center;padding:16px 0;">항목 정보 없음</div>';
+
+        document.getElementById('modalTotal').textContent =
+            Number(data.totalAmount).toLocaleString() + '원';
+
+        document.getElementById('previewOverlay').style.display = 'flex';
+    } catch (err) {
+        console.error('미리보기 조회 실패', err);
+    }
+}
+
 /* ================================================================
-   DB 데이터 테이블 표시
+   DB 테이블 표시
 ================================================================ */
 function showDbSection() {
     document.getElementById('filterBar').style.display    = 'flex';
@@ -108,6 +130,7 @@ function renderDbTable() {
         return true;
     });
 
+    rows = rows.sort((a, b) => a.unit.localeCompare(b.unit));
     rows = rows.map((r, i) => ({ ...r, num: i + 1 }));
 
     document.getElementById('tableMeta').innerHTML =
@@ -115,9 +138,11 @@ function renderDbTable() {
     document.getElementById('tableSummary').innerHTML =
         `필터 조건으로 조회된 결과입니다.`;
 
-    // 업로드 확정 버튼 숨기기 (DB 모드에서는 불필요)
-    const btnConfirm = document.getElementById('btnConfirm');
-    btnConfirm.style.display = 'none';
+    document.getElementById('btnConfirm').style.display = 'none';
+
+    const cancelBtn = document.getElementById('btnCancel');
+    if (cancelBtn) cancelBtn.style.display = 'none';
+
     document.getElementById('tableBody').innerHTML = rows.length
         ? rows.map(r => `
         <tr>
@@ -127,11 +152,10 @@ function renderDbTable() {
             <td>${r.billing_month}</td>
             <td>${Number(r.total_amount).toLocaleString()}원</td>
             <td><span class="badge badge-ok">DB저장</span></td>
-            <td>—</td>
+            <td><button class="btn-preview" onclick="openDbPreview(${r.billingId})">미리보기 →</button></td>
             <td>—</td>
         </tr>`).join('')
-        : `<tr><td colspan="8" style="text-align:center;padding:36px;color:#aaa;">
-            조회된 데이터가 없습니다.</td></tr>`;
+        : `<tr><td colspan="8" style="text-align:center;padding:36px;color:#aaa;">조회된 데이터가 없습니다.</td></tr>`;
 }
 
 function buildDongGridFromDb() {
@@ -168,19 +192,17 @@ function initUploadZone() {
 }
 
 /* ================================================================
-   파일 처리 → 중복 확인 → 파싱
+   파일 처리
 ================================================================ */
 async function handleFile(file) {
-    pendingFile  = file;
+    pendingFile = file;
 
     const nameMatch = file.name.match(/(\d{4})[_-](\d{2})/);
     billingMonth = nameMatch ? `${nameMatch[1]}-${nameMatch[2]}` : null;
 
     if (billingMonth) {
         try {
-            const res  = await fetch(
-                `${CONTEXT_PATH}/api/billing/admin/upload/check?billingMonth=${billingMonth}`
-            );
+            const res  = await fetch(`${CONTEXT_PATH}/api/billing/admin/upload/check?billingMonth=${billingMonth}`);
             const data = await res.json();
             if (data.exists) {
                 document.getElementById('dupOverlay').style.display = 'flex';
@@ -202,15 +224,23 @@ function cancelDup() {
 
 function confirmDup() {
     document.getElementById('dupOverlay').style.display = 'none';
-    processFile(pendingFile);
+    if (pendingFile) {
+        processFile(pendingFile);
+        pendingFile = null;
+    } else {
+        doConfirmUpload();
+    }
 }
 
 /* ================================================================
-   SheetJS 파싱 — 시트(동) 전체 순회
+   SheetJS 파싱
+   ※ reader.onload → async 로 변경 (runValidation await 처리)
 ================================================================ */
 function processFile(file) {
     const reader = new FileReader();
-    reader.onload = e => {
+
+    // ★ async 추가: runValidation에서 await fetchAndSetUpsertTypes() 호출을 위해 필요
+    reader.onload = async e => {
         const wb      = XLSX.read(e.target.result, { type: 'binary' });
         const allRows = [];
 
@@ -221,23 +251,22 @@ function processFile(file) {
             rows.forEach(row => allRows.push({ ...row, _dong: dong }));
         });
 
-        runValidation(allRows);
+        await runValidation(allRows);
     };
     reader.readAsBinaryString(file);
 }
 
 /* ================================================================
    유효성 검사
+   ★ async 추가: DB 조회로 INSERT/UPDATE 구분 처리
 ================================================================ */
-function runValidation(rows) {
+async function runValidation(rows) {
     uploadDone = false;
     document.getElementById('uploadDoneBanner').style.display = 'none';
 
     const trimmedRows = rows.map(row => {
         const trimmed = {};
-        Object.keys(row).forEach(key => {
-            trimmed[key.trim()] = row[key];
-        });
+        Object.keys(row).forEach(key => { trimmed[key.trim()] = row[key]; });
         return trimmed;
     });
 
@@ -250,10 +279,6 @@ function runValidation(rows) {
         const householdId = dongHo;
         const month       = billingMonth || '';
 
-        let valid = '정상';
-        if (!dongHo || !month) valid = '오류';
-        else if (total === 0)  valid = '금액 누락';
-
         const details = ITEM_COLS
             .map(col => {
                 const raw = row[col];
@@ -261,6 +286,11 @@ function runValidation(rows) {
                 return { item_name: col, item_amount: amt };
             })
             .filter(d => d.item_amount > 0);
+
+        let valid = '정상';
+        if (!dongHo || !month)         valid = '오류';
+        else if (total === 0)          valid = '금액 누락';
+        else if (details.length === 0) valid = '항목 누락';
 
         return {
             num:           idx + 1,
@@ -270,11 +300,14 @@ function runValidation(rows) {
             billing_month: month,
             total_amount:  total,
             valid,
-            upsertType:    valid === '정상' ? 'INSERT' : null,
+            upsertType:    valid === '정상' ? 'INSERT' : null,  // 일단 INSERT로 초기화
             details,
             fromDb:        false,
         };
     });
+
+    // ★ 핵심 수정: DB 조회로 INSERT / UPDATE 정확하게 구분
+    await fetchAndSetUpsertTypes();
 
     if (billingMonth) {
         const parts = billingMonth.split('-');
@@ -289,16 +322,56 @@ function runValidation(rows) {
 }
 
 /* ================================================================
-   엑셀 데이터 테이블 표시
+   ★ 신규 함수: DB 조회로 INSERT/UPDATE 구분
+   - 해당 billingMonth의 DB 저장 데이터를 가져와 unit 매칭
+   - DB에 이미 있는 세대 → UPDATE, 없는 세대 → INSERT
+   - 오류 행(valid !== '정상')은 null 유지
+================================================================ */
+async function fetchAndSetUpsertTypes() {
+    if (!billingMonth) return;
+
+    try {
+        const res = await fetch(
+            `${CONTEXT_PATH}/api/billing/admin/list?month=${billingMonth}&size=500`
+        );
+        if (!res.ok) return;
+
+        const data = await res.json();
+
+        // DB에 이미 존재하는 세대 unit 집합 (예: "101동 1204호")
+        const existingUnits = new Set(
+            (data.content || [])
+                .map(item => item.unit)
+                .filter(Boolean)
+        );
+
+        validRows = validRows.map(r => ({
+            ...r,
+            upsertType: r.valid !== '정상'
+                ? null                                        // 오류 행: 표시 없음
+                : existingUnits.has(r.unit) ? 'UPDATE'        // DB 존재: 기존 UPDATE
+                                            : 'INSERT'        // DB 없음: 신규 INSERT
+        }));
+
+    } catch (err) {
+        // 조회 실패 시 기본값 INSERT 유지 (runValidation에서 초기화한 값)
+        console.warn('UPSERT 타입 조회 실패, 기본 INSERT로 처리', err);
+    }
+}
+
+/* ================================================================
+   엑셀 테이블 표시
 ================================================================ */
 function showExcelSection() {
     document.getElementById('filterBar').style.display    = 'flex';
     document.getElementById('tableSection').style.display = 'block';
     buildDongGrid();
 
-    // 업로드 확정 버튼 다시 표시
     const btnConfirm = document.getElementById('btnConfirm');
     btnConfirm.style.display = '';
+
+    const cancelBtn = document.getElementById('btnCancel');
+    if (cancelBtn) cancelBtn.style.display = '';
 
     renderTable();
 }
@@ -316,7 +389,8 @@ function renderTable() {
 
     if (sortKey) {
         rows = [...rows].sort((a, b) => {
-            const av = a[sortKey], bv = b[sortKey];
+            const av = a[sortKey] ?? '';
+            const bv = b[sortKey] ?? '';
             if (av < bv) return -sortDir;
             if (av > bv) return  sortDir;
             return 0;
@@ -332,7 +406,7 @@ function renderTable() {
     const updateCount = validRows.filter(r => r.upsertType === 'UPDATE').length;
 
     document.getElementById('tableMeta').innerHTML =
-        `총 ${totalCount}세대 · <span class="meta-error">오류 ${errorCount}건</span>`;
+        `총 ${totalCount}세대 (필터: ${rows.length}건) · <span class="meta-error">오류 ${errorCount}건</span>`;
     document.getElementById('tableSummary').innerHTML =
         `정상 ${normalCount}건 (신규 ${insertCount} · 업데이트 ${updateCount}) · 오류 ${errorCount}건`;
 
@@ -433,24 +507,30 @@ function closeAllPanels() {
 
 function pickYear(y) {
     selYear = y;
+    selDong = null;
     document.getElementById('lblYear').textContent = y ? y + '년' : '전체';
+    document.getElementById('lblDong').textContent = '전체 동';
     closeAllPanels();
     if (mode === 'db') fetchDbList();
-    else renderTable();
+    else { buildDongGrid(); renderTable(); }
 }
+
 function pickMonth(m) {
     selMonth = m;
+    selDong  = null;
     document.getElementById('lblMonth').textContent = m ? MONTHS[m - 1] : '전체 월';
+    document.getElementById('lblDong').textContent  = '전체 동';
     closeAllPanels();
     if (mode === 'db') fetchDbList();
-    else renderTable();
+    else { buildDongGrid(); renderTable(); }
 }
+
 function pickDong(d) {
     selDong = d;
     document.getElementById('lblDong').textContent = d ? d : '전체 동';
     closeAllPanels();
-    if (mode === 'db') fetchDbList();
-    else renderTable();
+    if (mode === 'db') { buildDongGridFromDb(); renderDbTable(); }
+    else               { buildDongGrid();        renderTable();   }
 }
 
 /* ================================================================
@@ -463,7 +543,7 @@ function sortBy(key) {
 }
 
 /* ================================================================
-   미리보기 모달 (엑셀 모드 전용)
+   미리보기 모달 (엑셀 모드 — 로컬 데이터)
 ================================================================ */
 function openPreview(hid, month) {
     const row = validRows.find(r => r.household_id === hid && r.billing_month === month);
@@ -495,17 +575,26 @@ function closePreview(e) {
     if (e && e.target !== document.getElementById('previewOverlay')) return;
     closePreviewBtn();
 }
+
 function closePreviewBtn() {
     document.getElementById('previewOverlay').style.display = 'none';
 }
 
 /* ================================================================
-   업로드 확정 — POST /api/billing/admin/upload/confirm
+   업로드 확정 — 확인 팝업 표시
 ================================================================ */
 async function confirmUpload() {
     const errorCount = validRows.filter(r => r.valid !== '정상').length;
     if (errorCount > 0 || uploadDone) return;
 
+    pendingFile = null;  // null이면 confirmDup()에서 doConfirmUpload() 호출
+    document.getElementById('dupOverlay').style.display = 'flex';
+}
+
+/* ================================================================
+   업로드 확정 — 실제 API 호출
+================================================================ */
+async function doConfirmUpload() {
     const uploadRows = validRows
         .filter(r => r.valid === '정상')
         .map(r => ({
@@ -526,7 +615,7 @@ async function confirmUpload() {
                 method:  'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    [CSRF_HEADER]: CSRF_TOKEN
+                    [CSRF_HEADER]:  CSRF_TOKEN
                 },
                 body: JSON.stringify(uploadRows),
             }
@@ -546,8 +635,18 @@ async function confirmUpload() {
         btn.disabled    = true;
         btn.classList.add('disabled');
 
-        // 업로드 확정 후 DB 데이터 재조회
-        await fetchDbList();
+        const cancelBtn = document.getElementById('btnCancel');
+        if (cancelBtn) cancelBtn.style.display = 'none';
+
+        document.getElementById('fileInput').value = '';
+
+        // 업로드 완료 후 upsertType을 모두 UPDATE로 갱신
+        mode      = 'excel';
+        validRows = validRows.map(r => ({
+            ...r,
+            upsertType: r.valid === '정상' ? 'UPDATE' : null
+        }));
+        renderTable();
 
     } catch (err) {
         console.error('업로드 확정 실패', err);
@@ -555,19 +654,24 @@ async function confirmUpload() {
     }
 }
 
-/* ── 취소 → DB 모드로 복귀 ── */
+/* ================================================================
+   취소 → DB 모드로 복귀
+================================================================ */
 function cancelUpload() {
     validRows    = [];
     billingMonth = null;
     uploadDone   = false;
+    sortKey      = null;
+    sortDir      = 1;
+
     document.getElementById('uploadDoneBanner').style.display = 'none';
     document.getElementById('fileInput').value                = '';
+
     const btn = document.getElementById('btnConfirm');
     btn.textContent = '업로드 확정 ↑';
     btn.disabled    = false;
     btn.classList.remove('disabled');
 
-    // DB 모드로 복귀
     mode = 'db';
     fetchDbList();
 }
