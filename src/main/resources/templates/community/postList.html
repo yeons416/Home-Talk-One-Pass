@@ -28,7 +28,8 @@
                 <tr th:each="post : ${posts}">
                     <td><span th:text="${post.categoryName}" class="list-category">카테고리</span></td>
                     <td class="title-cell">
-                        <a th:href="@{/community/{code}/{id}(code=${board.code}, id=${post.id})}" th:text="${post.title}"></a>
+                        <a th:href="@{/community/{bCode}/{cCode}/{id}(bCode=${board.code}, cCode=${categoryCode}, id=${post.id})}"
+                           th:text="${post.title}"></a>
                     </td>
                     <td th:text="${post.commentCount}" class="comment-count"></td>
                     <td th:text="${post.writer}">작성자</td>

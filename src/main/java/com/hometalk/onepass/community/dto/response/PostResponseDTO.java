@@ -14,6 +14,7 @@ public class PostResponseDTO {
     private String title;
     private String content;
     private String boardName;
+    private Long categoryId;
     private String categoryName;
     private String categoryCode;
     //private List<String> tags;
@@ -42,6 +43,7 @@ public class PostResponseDTO {
         this.content = post.getContent();
         this.pinned = post.isPinned();
         this.boardName = post.getCategory().getBoard().getName();
+        this.categoryId = post.getCategory().getId();
         this.categoryName = post.getCategory().getName();
         this.categoryCode = post.getCategory().getCode();
         this.writer = post.getWriter().getNickname();

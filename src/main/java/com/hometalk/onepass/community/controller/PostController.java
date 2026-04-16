@@ -69,8 +69,10 @@ public class PostController {
         return "community/postDetail";
     }
  */
-    @GetMapping("/{boardCode}/{id:[0-9]+}")
-    public String postDetail(@PathVariable String boardCode, @PathVariable Long id, Model model) {
+    @GetMapping("/{boardCode}/{categoryCode:[a-zA-Z]+}/{id:[0-9]+}")
+    public String postDetail(@PathVariable String boardCode,
+                             @PathVariable String categoryCode,
+                             @PathVariable Long id, Model model) {
         // [임시] 아직 로그인 연동 전이므로 테스트용 유저 정보 직접 생성
         PostUserRsDTO tempUser = PostUserRsDTO.builder()
                 .id(1L)           // 테스트하고 싶은 유저 ID
@@ -81,9 +83,19 @@ public class PostController {
         PostResponseDTO post = postService.postDetail(id, tempUser, boardCode);
         model.addAttribute("post", post);
 
-        // 2. 공통 레이아웃 데이터
+        // 2. 카테고리 배너 활성
+        CategoryResponseDTO category;
+        if ("all".equals(categoryCode)) {
+            category = categoryService.findById(post.getCategoryId(), boardCode);
+        } else {
+            category = categoryService.findByCode(categoryCode);
+        }
+
+        // 3. 공통 레이아웃 데이터
         BoardResponseDTO board = boardService.findByCode(boardCode);
-        addLayoutAttributes(board, null, model, false);
+        addLayoutAttributes(board, category, model, false);
+
+        model.addAttribute("currentCategoryCode", categoryCode);
 
         return "community/postDetail";
     }
@@ -159,7 +171,7 @@ public class PostController {
         if (isTemp) {
             return "redirect:/community/" + boardCode + "/write?id=" + id;
         }
-        return "redirect:/community/" + boardCode + "/" + id;
+        return "redirect:/community/" + boardCode + "/all/" + id;
     }
 
     // 게시글 수정
@@ -181,7 +193,7 @@ public class PostController {
 
         postService.postUpdate(id, dto, tempUserId, boardCode);
         redirectAttributes.addFlashAttribute("successMessage", "게시글이 수정되었습니다.");
-        return "redirect:/community/" + boardCode + "/" + id;
+        return "redirect:/community/" + boardCode + "/all/" + id;
     }
 
     // 게시글 삭제
@@ -202,7 +214,7 @@ public class PostController {
 
         postService.deletePost(id, tempUserId, boardCode);
         redirectAttributes.addFlashAttribute("successMessage", "게시글이 삭제되었습니다.");
-        return "redirect:/community/" + boardCode;
+        return "redirect:/community/" + boardCode + "/all";
     }
 
     @GetMapping("/{boardCode}/temp-list")
@@ -229,7 +241,6 @@ public class PostController {
         } else {
             categories = categoryService.findAllByBoardId(board.getId());
         }
-
         model.addAttribute("categories", categories); // 카테고리 배너용
         model.addAttribute("boardId", board.getId());
         model.addAttribute("categoryId", (category != null) ? category.getId() : null);
