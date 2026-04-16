@@ -1,4 +1,4 @@
-package com.hometalk.onepass.community.dto;
+package com.hometalk.onepass.community.dto.response;
 
 import com.hometalk.onepass.community.entity.Post;
 import lombok.*;
@@ -15,6 +15,7 @@ public class PostResponseDTO {
     private String content;
     private String boardName;
     private String categoryName;
+    private String categoryCode;
     //private List<String> tags;
     private LocalDateTime createdAt;
     private int viewCount;
@@ -42,6 +43,7 @@ public class PostResponseDTO {
         this.pinned = post.isPinned();
         this.boardName = post.getCategory().getBoard().getName();
         this.categoryName = post.getCategory().getName();
+        this.categoryCode = post.getCategory().getCode();
         this.writer = post.getWriter().getNickname();
         //this.tags = post.getTags().stream().map(tag -> tag.getName()).collect(Collectors.toList());
         this.createdAt = post.getCreatedAt();

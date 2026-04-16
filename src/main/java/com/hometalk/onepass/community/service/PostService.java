@@ -2,10 +2,10 @@ package com.hometalk.onepass.community.service;
 
 import com.hometalk.onepass.auth.entity.User;
 import com.hometalk.onepass.auth.repository.UserRepository;
-import com.hometalk.onepass.community.dto.PostRequestDTO;
-import com.hometalk.onepass.community.dto.PostListResponse;
-import com.hometalk.onepass.community.dto.PostResponseDTO;
-import com.hometalk.onepass.community.dto.PostUserRsDTO;
+import com.hometalk.onepass.community.dto.request.PostRequestDTO;
+import com.hometalk.onepass.community.dto.response.PostListResponse;
+import com.hometalk.onepass.community.dto.response.PostResponseDTO;
+import com.hometalk.onepass.community.dto.response.PostUserRsDTO;
 import com.hometalk.onepass.community.entity.Board;
 import com.hometalk.onepass.community.entity.Category;
 import com.hometalk.onepass.community.entity.Post;

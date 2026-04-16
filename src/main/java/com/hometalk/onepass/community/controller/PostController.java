@@ -1,15 +1,13 @@
 package com.hometalk.onepass.community.controller;
 
-import com.hometalk.onepass.community.dto.*;
-import com.hometalk.onepass.community.entity.Post;
+import com.hometalk.onepass.community.dto.request.PostRequestDTO;
+import com.hometalk.onepass.community.dto.response.*;
 import com.hometalk.onepass.community.enums.PostStatus;
-import com.hometalk.onepass.community.repository.PostRepository;
 import com.hometalk.onepass.community.service.BoardService;
 import com.hometalk.onepass.community.service.CategoryService;
 import com.hometalk.onepass.community.service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;

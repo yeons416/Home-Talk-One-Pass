@@ -1,6 +1,6 @@
 package com.hometalk.onepass.community.service;
 
-import com.hometalk.onepass.community.dto.CategoryResponseDTO;
+import com.hometalk.onepass.community.dto.response.CategoryResponseDTO;
 import com.hometalk.onepass.community.repository.BoardRepository;
 import com.hometalk.onepass.community.repository.CategoryRepository;
 import jakarta.transaction.Transactional;

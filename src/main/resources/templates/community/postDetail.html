@@ -17,7 +17,8 @@
     <div class="content-container">
         <div class="post-header">
             <span class="category-tag" th:text="${post.categoryName}">카테고리</span>
-            <span th:text="${post.marketStatusDescription}"></span>
+            <span th:if="${post.categoryCode == 'share' and post.marketStatus != null}"
+                  th:text="${post.marketStatusDescription}"></span>
             <h1 class="post-title" th:text="${post.title}">게시글 제목</h1>
 
             <div class="post-meta">
@@ -33,7 +34,8 @@
                 </button>
                 </div>
 
-                <div th:if="${post.editable and post.marketStatus != null}" class="writer-only-tools" style="display: inline-block; margin-left: 5px;">
+                <div th:if="${post.categoryCode == 'share' and post.editable and post.marketStatus != null}"
+                     class="writer-only-tools" style="display: inline-block; margin-left: 5px;">
                     <select th:onchange="|updateStatus(${post.id}, this.value)|" class="status-select">
                         <option th:selected="${post.marketStatus == 'SHARED'}" value="SHARED">나눔중</option>
                         <option th:selected="${post.marketStatus == 'RESERVED'}" value="RESERVED">예약중</option>

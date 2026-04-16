@@ -4,13 +4,11 @@ package com.hometalk.onepass.community.validator;
     권한, 관리자, 상태 검사 로직
  */
 
-import com.hometalk.onepass.community.dto.PostResponseDTO;
-import com.hometalk.onepass.community.dto.PostUserRsDTO;
+import com.hometalk.onepass.community.dto.response.PostResponseDTO;
+import com.hometalk.onepass.community.dto.response.PostUserRsDTO;
 import com.hometalk.onepass.community.entity.Post;
 import com.hometalk.onepass.community.exception.UnauthorizedAccessException;
 import org.springframework.stereotype.Component;
-
-import java.nio.file.AccessDeniedException;
 
 @Component
 public class PostValidator {
