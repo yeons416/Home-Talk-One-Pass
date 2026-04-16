@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HomeTOP Community</title>
+    <link rel="stylesheet" th:href="@{/css/community/common.css}">
+    <link rel="stylesheet" href="/css/community/poststyle.css" th:href="@{/css/community/post-detail.css}">
+</head>
+<body>
+<div th:replace="~{community/fragments/boardListHeader :: boardListHeader(boards=${boards}, boardId=${boardId})}"></div>
+<div th:replace="~{community/fragments/categoryBanner :: categoryBanner(board=${board}, categories=${categories}, categoryId=${categoryId})}"></div>
+
+    <div th:if="${successMessage}" class="success-message">
+        <span th:text="${successMessage}"></span>
+    </div>
+    <div class="content-container">
+        <div class="post-header">
+            <span class="category-tag" th:text="${post.categoryName}">카테고리</span>
+            <span th:if="${post.categoryCode == 'share' and post.marketStatus != null}"
+                  th:text="${post.marketStatusDescription}"></span>
+            <h1 class="post-title" th:text="${post.title}">게시글 제목</h1>
+
+            <div class="post-meta">
+                <span class="author" th:text="${post.writer}">작성자</span>
+                <span class="date" th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd HH:mm')}">작성일</span>
+                <span class="views">조회수 <span th:text="${post.viewCount}">0</span></span>
+
+                <div th:if="${post.admin}" class="admin-tools">
+                    <button id="pinBtn" th:onclick="|togglePin(${post.id})|" class="btn-pin"
+                            th:classappend="${post.pinned} ? 'active' : ''">
+                    <i class="fas fa-thumbtack"></i>
+                    <span th:text="${post.pinned} ? '고정 해제' : '상단 고정'">상단 고정</span>
+                </button>
+                </div>
+
+                <div th:if="${post.categoryCode == 'share' and post.editable and post.marketStatus != null}"
+                     class="writer-only-tools" style="display: inline-block; margin-left: 5px;">
+                    <select th:onchange="|updateStatus(${post.id}, this.value)|" class="status-select">
+                        <option th:selected="${post.marketStatus == 'SHARED'}" value="SHARED">나눔중</option>
+                        <option th:selected="${post.marketStatus == 'RESERVED'}" value="RESERVED">예약중</option>
+                        <option th:selected="${post.marketStatus == 'COMPLETED'}" value="COMPLETED">나눔완료</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <hr>
+
+        <div class="page-body">
+            <p th:utext="${post.content}">게시글 내용</p>
+        </div>
+
+        <hr>
+
+        <div class="page-footer">
+            <a th:href="@{/community/{code}(code=${board.code})}" class="btn">목록</a>
+
+            <div class="edit-delete-group" th:if="${post.editable}">
+                <a th:href="@{/community/{code}/edit/{id}(code=${board.code}, id=${post.id})}" class="btn-edit">수정</a>
+                <form th:action="@{/community/{code}/delete/{id}(code=${boardCode}, id=${post.id})}"
+                      method="post" style="display:inline;" id="deleteForm">
+                    <button type="button" class="btn-delete"
+                            id="btn-delete" th:data-id="${post.id}">삭제</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="comment-section">
+            <h3>댓글</h3>
+            <p>댓글 기능 준비 중...</p>
+        </div>
+    </div>
+
+    <script th:src="@{/js/community/post.js}" defer></script>
+</body>
+</html>

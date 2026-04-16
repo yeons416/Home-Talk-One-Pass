@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>미납 세대 관리 - HomeTalkOnePass</title>
+    <link rel="stylesheet" th:href="@{/css/dashboard/style.css}" />
+    <link rel="stylesheet" th:href="@{/billing/css/billing_common.css}" />
+    <link rel="stylesheet" th:href="@{/billing/css/billing_admin_unpaid.css}" />
+</head>
+<body>
+
+<div class="main-layout" style="display:flex; min-height:100vh;">
+    <div th:replace="~{fragments/sidebar :: sidebar}" th:with="menu='billing'"></div>
+
+    <div class="main-wrapper" style="flex:1; display:flex; flex-direction:column;">
+        <div th:replace="~{fragments/header :: header}"></div>
+
+        <!-- 카테고리 바 위치 (빈 바 고정) -->
+        <header class="category-menu-bar">&nbsp;</header>
+
+        <!-- 메인 콘텐츠 -->
+        <div class="main-content">
+
+            <div class="page-title">미납 세대 관리</div>
+
+            <!-- 통계 카드 -->
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <div class="stat-label">전체 세대</div>
+                    <div class="stat-value" th:text="${totalCount} ?: '—'">120</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">납부 완료</div>
+                    <div class="stat-value accent" th:text="${paidCount} ?: '—'">98</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">미납 세대</div>
+                    <div class="stat-value warn" th:text="${unpaidCount} ?: '—'">22</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">납부율</div>
+                    <div class="stat-value"
+                         th:text="${paidRate != null} ? ${#numbers.formatDecimal(paidRate, 1, 1) + '%'} : '—'">81.7%</div>
+                </div>
+            </div>
+
+            <!-- 필터 -->
+            <div class="filter-row">
+                <div class="panel-wrap">
+                    <button class="filter-btn" id="btnYear" onclick="togglePanel('year')">
+                        <span id="lblYear">2026년</span><span class="caret">▼</span>
+                    </button>
+                    <div class="filter-panel" id="panelYear" style="display:none">
+                        <div class="chip-grid year-g" id="yearGrid"></div>
+                    </div>
+                </div>
+                <div class="panel-wrap">
+                    <button class="filter-btn" id="btnMonth" onclick="togglePanel('month')">
+                        <span id="lblMonth">전체 월</span><span class="caret">▼</span>
+                    </button>
+                    <div class="filter-panel" id="panelMonth" style="display:none">
+                        <div class="chip-grid month-g" id="monthGrid"></div>
+                    </div>
+                </div>
+                <div class="panel-wrap">
+                    <button class="filter-btn" id="btnDong" onclick="togglePanel('dong')">
+                        <span id="lblDong">전체 동</span><span class="caret">▼</span>
+                    </button>
+                    <div class="filter-panel" id="panelDong" style="display:none">
+                        <div class="chip-grid dong-g" id="dongGrid"></div>
+                    </div>
+                </div>
+                <div class="panel-wrap">
+                    <button class="filter-btn" id="btnUnpaidFilter" onclick="togglePanel('unpaid')">
+                        <span id="lblUnpaid">미납만 보기</span><span class="caret">▼</span>
+                    </button>
+                    <div class="filter-panel" id="panelUnpaid" style="display:none">
+                        <div class="chip-grid status-g">
+                            <button class="chip status-chip" id="chipAll"
+                                    onclick="pickUnpaidFilter('all','전체')">전체</button>
+                            <button class="chip status-chip selected" id="chipUnpaid"
+                                    onclick="pickUnpaidFilter('unpaid','미납만 보기')">미납만 보기</button>
+                            <button class="chip status-chip" id="chipLong"
+                                    onclick="pickUnpaidFilter('long','3개월 이상 체납')">3개월 이상 체납</button>
+                            <button class="chip status-chip" id="chipPaid"
+                                    onclick="pickUnpaidFilter('paid','납부완료')">납부완료</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 미납 세대 목록 테이블 -->
+            <div class="table-section">
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead>
+                        <tr>
+                            <th>num</th>
+                            <th>동/호</th>
+                            <th>입주민</th>
+                            <th>부과월</th>
+                            <th>청구금액</th>
+                            <th>납기일</th>
+                            <th>status</th>
+                            <th>처리</th>
+                        </tr>
+                        </thead>
+                        <tbody id="billingTableBody">
+                        <th:block th:if="${billingList != null and !billingList.isEmpty()}">
+                            <tr th:each="item, stat : ${billingList}"
+                                th:with="isUnpaid=${item.status.name() == 'UNPAID'},
+                                         isDone=${item.status.name() == 'PAID'}"
+                                th:classappend="${isDone} ? 'done' : ''">
+                                <td th:text="${stat.index + 1 + (currentPage * pageSize)}">1</td>
+                                <td th:text="${item.unit}">101-1204</td>
+                                <td th:text="${item.residentName}">홍길동</td>
+                                <td th:text="${item.billingMonth}">2026.02</td>
+                                <td th:text="${#numbers.formatInteger(item.totalAmount, 0, 'COMMA') + '원'}">119,300원</td>
+                                <td th:text="${#temporals.format(item.dueDate, 'yyyy.MM.dd')}">2026.02.28</td>
+                                <td>
+                                    <span th:classappend="${isUnpaid} ? 'badge-unpaid' : 'badge-paid'"
+                                          class="badge"
+                                          th:text="${item.status}">UNPAID</span>
+                                </td>
+                                <td>
+                                    <button th:if="${isUnpaid}"
+                                            class="btn-process"
+                                            th:data-billing-id="${item.billingId}"
+                                            th:data-unit="${item.unit}"
+                                            th:data-month="${item.billingMonth}"
+                                            onclick="openConfirm(this)">납부완료 처리</button>
+                                    <span th:unless="${isUnpaid}" class="btn-process done-txt">처리완료</span>
+                                </td>
+                            </tr>
+                        </th:block>
+                        <tr th:if="${billingList == null or billingList.isEmpty()}">
+                            <td colspan="8" class="empty-state">조회된 미납 세대가 없습니다.</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 페이지네이션 -->
+                <div class="pagination" th:if="${totalPages > 1}">
+                    <button class="page-btn"
+                            th:classappend="${currentPage == 0} ? 'disabled'"
+                            th:onclick="${currentPage > 0} ? 'goPage(' + ${currentPage - 1} + ')' : ''">
+                        &lt;
+                    </button>
+                    <th:block th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+                        <button class="page-btn"
+                                th:classappend="${i == currentPage} ? 'active'"
+                                th:text="${i + 1}"
+                                th:onclick="'goPage(' + ${i} + ')'">1</button>
+                    </th:block>
+                    <button class="page-btn"
+                            th:classappend="${currentPage == totalPages - 1} ? 'disabled'"
+                            th:onclick="${currentPage < totalPages - 1} ? 'goPage(' + ${currentPage + 1} + ')' : ''">
+                        &gt;
+                    </button>
+                </div>
+            </div>
+
+        </div><!-- /main-content -->
+
+        <footer th:replace="~{fragments/footer :: footer}"></footer>
+
+    </div><!-- /main-wrapper -->
+</div><!-- /main-layout -->
+
+<!-- 납부완료 처리 confirm 팝업 -->
+<div class="confirm-overlay" id="confirmOverlay" style="display:none">
+    <div class="confirm-box">
+        <div class="confirm-title">납부완료 처리</div>
+        <div class="confirm-unit" id="confirmUnit"></div>
+        <div class="confirm-month" id="confirmMonth"></div>
+        <div class="confirm-msg-warn">납부완료 처리를 하시겠습니까? (변경불가)</div>
+        <div class="confirm-btns">
+            <button class="btn btn-ghost" onclick="closeConfirm()">취소</button>
+            <button class="btn btn-point" onclick="processPayment()">확인</button>
+        </div>
+    </div>
+</div>
+
+<meta name="_csrf"        th:content="${_csrf.token}" />
+<meta name="_csrf_header" th:content="${_csrf.headerName}" />
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const CONTEXT_PATH = /*[[${contextPath}]]*/ '/hometalk';
+    const CSRF_TOKEN   = document.querySelector('meta[name="_csrf"]')?.content;
+    const CSRF_HEADER  = document.querySelector('meta[name="_csrf_header"]')?.content;
+    /*]]>*/
+</script>
+<script th:src="@{/billing/js/billing_unpaid.js}"></script>
+
+</body>
+</html>

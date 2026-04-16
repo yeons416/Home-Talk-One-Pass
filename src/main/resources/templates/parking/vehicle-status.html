@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>세대 차량 목록</title>
+  <meta name="_csrf" th:content="${_csrf.token}">
+  <meta name="_csrf_header" th:content="${_csrf.headerName}">
+  <style>
+    /* CSS는 나중에 추가 */
+  </style>
+  <link rel="stylesheet" th:href="@{/css/dashboard/style.css}">
+</head>
+<body>
+
+<div class="main-layout" style="display: flex; min-height: 100vh;">
+
+  <!-- 1. 왼쪽 사이드바 -->
+  <div th:replace="~{fragments/sidebar :: sidebar(currentPage='parking')}"></div>
+
+  <!-- 2. 오른쪽 영역 (헤더 + 본문) -->
+  <div class="main-wrapper" style="flex: 1; display: flex; flex-direction: column;">
+
+    <!-- 상단 헤더 -->
+    <div th:replace="~{fragments/header_menu :: header_menu(currentPath01='parking', currentPath02='status')}"></div>
+
+    <!-- 상단 메뉴 -->
+    <div th:replace="~{fragments/header-menu/parkingCategoryMenu :: categoryMenu}"></div>
+
+    <!-- 메인 콘텐츠 -->
+    <main class="content" style="flex: 1;">
+      <div class="container">
+        <h2 class="page-title">세대 차량 목록</h2>
+
+        <!-- 차량 목록 테이블 -->
+        <table id="vehicleTable">
+          <thead>
+          <tr>
+            <th>차량 번호</th>
+            <th>모델</th>
+            <th>종류</th>
+            <th>상태</th>
+            <th>등록자</th>
+            <th></th>
+          </tr>
+          </thead>
+          <tbody>
+          <!-- 차량 없을 때 -->
+          <tr th:if="${#lists.isEmpty(vehicles)}">
+            <td colspan="6">등록된 차량이 없습니다.</td>
+          </tr>
+          <!-- 차량 목록 -->
+          <tr th:each="vehicle : ${vehicles}">
+            <td th:text="${vehicle.vehicleNumber}"></td>
+            <td th:text="${vehicle.model}"></td>
+            <td th:text="${vehicle.vehicleType}"></td>
+            <td>
+          <span th:with="status=${vehicle.status.name()}"
+                th:text="${status == 'APPROVED'} ? '승인완료' : (${status == 'PENDING'} ? '승인대기' : '반려')"
+                th:class="${status == 'APPROVED'} ? 'status approved' : (${status == 'PENDING'} ? 'status pending' : 'status rejected')">
+          </span>
+            </td>
+            <td th:text="${vehicle.user.name}"></td>
+            <td>
+              <button type="button"
+                      th:if="${vehicle.status.name() == 'REJECTED'}"
+                      class="reapply-btn"
+                      th:attr="data-vehicle=${vehicle.vehicleId}"
+                      onclick="goReapply(this.getAttribute('data-vehicle'))">
+                재신청
+              </button>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+
+        <!-- 반려 사유 모달 -->
+        <div id="rejectModal" style="display:none;">
+          <div class="modal-content">
+            <h3>반려 사유</h3>
+            <p id="rejectReason"></p>
+            <div class="modal-actions">
+              <button type="button" onclick="closeModal()">닫기</button>
+              <button type="button" class="reapply-btn" onclick="goReapplyFromModal()">재신청</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 차량 추가 버튼 -->
+        <div class="form-actions">
+          <button type="button" onclick="location.href='/parking/vehicle/register'">+ 차량 추가</button>
+        </div>
+      </div>
+    </main>
+
+    <!-- 하단 푸터 삽입 -->
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+
+  </div>
+</div>
+
+<script>
+  const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+  const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+  let selectedVehicleId = null;
+
+  function goReapply(vehicleId) {
+      selectedVehicleId = vehicleId;
+
+      fetch(`/parking/vehicle/reject-reason/${vehicleId}`, {
+          headers: {
+              [csrfHeader]: csrfToken
+          }
+      })
+          .then(async res => {
+              if (!res.ok) {
+                  const msg = await res.text();
+                  throw new Error(msg || '서버 오류');
+              }
+              return res.text();
+          })
+          .then(data => {
+              document.getElementById('rejectReason').textContent = data || '사유 없음';
+              document.getElementById('rejectModal').style.display = 'block';
+          })
+          .catch(err => {
+              console.error(err);
+              alert('반려 사유를 불러오는 중 오류가 발생했습니다.');
+          });
+  }
+
+  function closeModal() {
+      document.getElementById('rejectModal').style.display = 'none';
+  }
+
+  function goReapplyFromModal() {
+      location.href = `/parking/vehicle/reapply/${selectedVehicleId}`;
+  }
+</script>
+
+</body>
+</html>

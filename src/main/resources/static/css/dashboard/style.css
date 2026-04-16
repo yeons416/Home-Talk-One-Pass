@@ -1,0 +1,177 @@
+/*
+    style.css  - 전체 공통 스타일
+*/
+/* 기본 초기화 */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #f0f4f8; color: #1e293b;
+    line-height: 1.6;
+    min-height: 100vh; display: flex;
+    flex-direction: column;
+}
+
+/*
+    헤더
+*/
+.site-header {
+    /*background: #1a1f35; padding: 0.8rem;*/
+    /*display: flex; align-items: center; justify-content: space-between;*/
+
+    display: flex;          /* 가로 배치 */
+    justify-content: space-between; /* 양 끝으로 밀어내기 (브랜드-왼쪽, 메뉴-오른쪽) */
+    align-items: center;    /* 세로 중앙 정렬 */
+    padding: 10px 40px;     /* 상하 10px, 좌우 40px 여백 */
+    background-color: #ffffff;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* 하단 가벼운 그림자 효과 */
+}
+.site-header .brand {
+    /*font-size: 1.25rem; font-weight: bold; color: #fff; text-decoration: none;*/
+
+    font-size: 24px;
+    font-weight: bold;
+    text-decoration: none;
+    color: #2c3e50;
+}
+
+.site-header .menu {
+    margin-left: auto; /* 왼쪽 여백을 최대로 밀어서 오른쪽 끝으로 이동 */
+}
+
+.site-header nav a {
+    /*color: #7dd3fc; text-decoration: none; margin-left: 1.5rem;*/
+
+    text-decoration: none;
+    color: #333;
+    margin-left: 30px;      /* 메뉴 글자 사이 간격 띄우기 */
+    font-size: 16px;
+    transition: color 0.3s;
+}
+.site-header nav a:hover {
+    /*color: #fff;*/
+
+    color: #3498db;         /* 마우스 올리면 파란색으로 변경 */
+}
+
+.header-second-row a:hover {
+    color: #3498db !important;
+    text-decoration: underline; /* 마우스 올리면 밑줄 효과 */
+}
+
+/* 전체 레이아웃 설정 */
+.main-layout {
+    display: flex;
+    min-height: 100vh;   /* height: 100vh 대신 min-height 사용 */
+    align-items: stretch; /* 자식(사이드바)이 부모 높이만큼 늘어남 */
+}
+
+/* 왼쪽 사이드바 설정 */
+.sidebar {
+    width: 250px;  /* 원하는 너비 */
+    flex-shrink: 0;      /* 너비 고정 */
+    background-color: #2c3e50; /* 구분용 색상 */
+    /* height나 max-height 설정을 절대 넣지 마세요. stretch가 작동해야 합니다. */
+}
+
+/* 메인 콘텐츠와 헤더를 묶는 영역 */
+.right-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/*.sidebar {*/
+/*    width: 250px;          !* 사이드바 너비 고정 *!*/
+/*    background-color: #2c3e50;*/
+/*    color: white;*/
+/*    min-height: 100vh;     !* 높이를 화면 꽉 차게 *!*/
+/*    max-height: 800px;*/
+/*}*/
+
+/* 1. 리스트 항목 전체 글자색 변경 */
+.sidebar-menu {
+    list-style: none; /* 점 제거 (선택사항) */
+    padding: 0;
+}
+
+/* 2. 링크(a) 태그 색상을 하얀색으로 강제 지정 */
+.sidebar-menu li a {
+    color: #ffffff;         /* 하얀색 */
+    text-decoration: none;  /* 밑줄 제거 (선택사항) */
+    display: block;         /* 클릭 영역 확장 (선택사항) */
+    padding: 10px;          /* 간격 조절 (선택사항) */
+}
+
+/* 3. 마우스를 올렸을 때 효과 (선택사항) */
+.sidebar-menu li a:hover {
+    color: #cccccc;      /* 살짝 회색으로 변하게 */
+}
+
+/* 카테고리 메뉴 전체 바 */
+.category-menu-bar {
+    border-top: 1px solid #f0f0f0;
+    border-bottom: 1px solid #f0f0f0;
+    background-color: #ffffff;
+    padding: 10px 20px;
+}
+
+/* 리스트 스타일 제거 및 가로 배치 */
+.category-list {
+    display: flex;          /* 가로 나열 핵심 */
+    list-style: none;       /* 불렛 제거 */
+    margin: 0;
+    padding: 0;
+    gap: 40px;              /* 메뉴 사이 간격 */
+}
+
+/* 링크 스타일 */
+.category-list li a {
+    text-decoration: none;
+    color: #333;
+    font-size: 16px;
+    font-weight: 600;
+    transition: color 0.2s;
+}
+
+/* 마우스 올렸을 때 효과 */
+.category-list li a:hover {
+    color: #007bff;
+}
+
+/* 선택된 메뉴 스타일 예시 */
+.sidebar-menu a.active {
+    background-color: #e9ecef; /* 배경색 변경 */
+    color: #007bff;            /* 글자색 파란색 */
+    font-weight: bold;         /* 글자 두껍게 */
+    border-left: 4px solid #007bff; /* 왼쪽에 강조 선 */
+    padding-left: 16px;        /* 선 때문에 밀리는 간격 조정 */
+}
+
+/*.main-layout {*/
+/*    display: flex;         !* 가로 배치 핵심 *!*/
+/*    align-items: flex-start;*/
+/*    max-height: 1000px;*/
+/*}*/
+
+/*
+    메인 켄텐츠 (.content)
+*/
+
+.main-layout .content { max-width: 100%; min-height: 882px; margin: 0 auto; padding: 2rem; flex: 1; }
+.main-layout .content h1 { text-align: center; margin-bottom: 1.5rem; }
+
+/*.content {*/
+/*    flex: 1;               !* 나머지 공간을 본문이 다 차지함 *!*/
+/*    padding: 20px;*/
+/*}*/
+
+/*
+    푸터
+*/
+.site-footer {
+    background: #1a1f35; padding: 1.5rem; text-align: center; color: #94a3b8;
+    font-size: 0.85rem;
+}
+.site-footer .small {
+    font-site: 0.75rem; color: #64748b;
+}

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>인증 페이지</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        .auth-container { width: 400px; margin: 20px auto; padding: 30px; text-align: center; border: solid 1px #bdbaba;  }
+        .input-group { margin-bottom: 10px; width: 100% }
+        input { width: 250px; padding: 10px; }
+        button { width: 250px; padding: 10px; background-color: #007bff; color: white; border: none; cursor: pointer; }
+    </style>
+
+</head>
+<body>
+
+<div class="auth-container">
+    <h2>Home Talk One Pass</h2>
+    <h2>로그인</h2>
+    <form th:action="@{/auth/login}" method="post">
+        <div class="input-group">
+            <input type="text" name="loginId" placeholder="아이디를 입력하세요." required>
+        </div>
+        <div class="input-group">
+            <input type="password" name="password" placeholder="비밀번호를 입력하세요." required>
+        </div>
+        <button type="submit">로그인</button>
+    </form>
+
+    <div class="other-contain">
+        <p>계정이 없으신가요? <a th:href="@{/auth/register}">회원가입</a></p>
+    </div>
+</div>
+
+
+<script th:if="${param.error}" th:inline="javascript">
+
+    // 1. 알림창 띄우기
+    alert("아이디 또는 비밀번호가 일치하지 않습니다.");
+
+    // 2. 확인(OK)을 누르면 다시 깨끗한 로그인 페이지로 리다이렉트
+    window.location.href = window.location.pathname;
+    /*]]>*/
+</script>
+
+
+</body>
+</html>
