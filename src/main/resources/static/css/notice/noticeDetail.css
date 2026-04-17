@@ -1,0 +1,197 @@
+/*
+:root {
+--main-navy: #032154;
+--sub-blue: #3C6ABC;
+--point-coral: #EB6E57;
+--text-dark: #170124;
+--border-color: #E2E8F0;
+}
+
+.notice-table {
+width: 100%;
+border-collapse: collapse;
+border-top: 2px solid var(--main-navy);
+}
+
+.notice-table td {
+padding: 14px 16px;
+border-bottom: 1px solid var(--border-color);
+font-size: 13px;
+color: var(--text-dark);
+vertical-align: middle;
+}
+
+.notice-table td:first-child {
+width: 80px;
+text-align: center;
+}
+
+.notice-table td:nth-child(2) {
+font-size: 15px;
+font-weight: 600;
+}
+
+.notice-table td:nth-child(3),
+.notice-table td:nth-child(4) {
+width: 150px;
+text-align: center;
+color: #aaa;
+font-size: 12px;
+}
+
+.notice-table td:last-child {
+width: 60px;
+text-align: center;
+color: #aaa;
+font-size: 12px;
+}
+
+.notice-box {
+min-height: 150px;
+padding: 24px 4px;
+margin: 16px 0;
+font-size: 14px;
+line-height: 1.9;
+color: var(--text-dark);
+border-bottom: 1px solid var(--border-color);
+}
+
+.attachment-box {
+padding: 14px 16px;
+margin: 0 0 20px 0;
+border: 1px solid var(--border-color);
+border-radius: 10px;
+}
+
+.attachment-title {
+font-weight: 700;
+color: var(--main-navy);
+margin-bottom: 8px;
+font-size: 13px;
+}
+
+.attachment-link {
+color: var(--sub-blue);
+text-decoration: none;
+font-size: 13px;
+}
+
+.attachment-link:hover {
+    text-decoration: underline;
+}
+
+.notice-nav-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.notice-nav-table tr {
+    border-bottom: 1px solid var(--border-color);
+    transition: background 0.15s;
+}
+
+.notice-nav-table tr:last-child {
+    border-bottom: none;
+}
+
+.notice-nav-table tr:hover {
+    background: #f5f8ff;
+}
+
+.notice-nav-table td {
+    padding: 13px 16px;
+    font-size: 13px;
+    color: var(--text-dark);
+}
+
+.notice-nav-table tr td:first-child {
+    width: 70px;
+    text-align: center;
+    color: var(--sub-blue);
+    font-weight: 600;
+    font-size: 13px;
+    background: #f5f7fa;
+}
+
+.notice-nav-table td:nth-child(3),
+.notice-nav-table td:nth-child(4) {
+    width: 120px;
+    text-align: center;
+    color: #aaa;
+    font-size: 12px;
+}
+
+.notice-nav-table td:last-child {
+    width: 60px;
+    text-align: center;
+    color: #aaa;
+    font-size: 12px;
+}
+
+.notice-nav-table a {
+    text-decoration: none;
+    color: var(--text-dark);
+}
+
+.notice-nav-table a:hover {
+    color: var(--sub-blue);
+}
+
+.admin-buttons {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16px;
+}
+
+.btn-back {
+    background: white;
+    color: #666;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 7px 18px;
+    font-size: 13px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.2s;
+}
+
+.btn-back:hover {
+    background: #f5f5f5;
+}
+
+.btn-edit {
+    background: var(--main-navy);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 7px 18px;
+    font-size: 13px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.2s;
+}
+
+.btn-edit:hover {
+    background: var(--sub-blue);
+}
+
+.btn-delete {
+    background: white;
+    color: var(--point-coral);
+    border: 1px solid var(--point-coral);
+    border-radius: 6px;
+    padding: 7px 18px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-delete:hover {
+    background: var(--point-coral);
+    color: white;
+}

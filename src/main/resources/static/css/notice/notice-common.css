@@ -1,0 +1,203 @@
+/*:root {
+    --main-navy: #032154;
+    --sub-blue: #3C6ABC;
+    --point-coral: #EB6E57;
+    --btn-general: #4073C9;
+    --text-dark: #170124;
+    --border-color: #E2E8F0;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Pretendard', sans-serif;
+    background-color: #f0f2f5;
+    color: var(--text-dark);
+    line-height: 1.6;
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 100%;
+    margin: 20px;
+    background: white;
+    padding: 24px;
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+.badge-important span {
+    background-color: #d64141;
+    border-radius: 20px;
+    padding: 3px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    color: white;
+}
+
+.badge-facility span {
+    background-color: #25b04a;
+    border-radius: 20px;
+    padding: 3px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    color: white;
+}
+
+.badge-safety span {
+    background-color: #f1c40f;
+    border-radius: 20px;
+    padding: 3px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    color: white;
+}
+
+.badge-normal span {
+    background-color: #2639b4;
+    border-radius: 20px;
+    padding: 3px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    color: white;
+}
+
+.btn {
+    display: inline-block;
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    text-decoration: none;
+}
+
+.notice-content-wrap {
+    position: relative;
+}
+
+.btn-schedule {
+    background-color: var(--main-navy);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.btn-schedule:hover {
+    background-color: #051a3a;
+}
+
+.schedule-modal {
+    display: none;
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background: white;
+    border-radius: 16px;
+    width: 300px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    z-index: 100;
+}
+
+.schedule-modal.open {
+    display: block;
+}
+
+.modal-header {
+    background: var(--main-navy);
+    color: white;
+    padding: 14px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.modal-header button {
+    background: none;
+    border: 1px solid rgba(255,255,255,0.3);
+    color: white;
+    border-radius: 6px;
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    font-size: 11px;
+}
+
+.modal-body {
+    padding: 16px;
+}
+
+.modal-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.modal-table td {
+    padding: 6px 4px;
+    font-size: 13px;
+    vertical-align: middle;
+}
+
+.modal-table td:first-child {
+    white-space: nowrap;
+    width: 50px;
+    color: #444;
+}
+
+.modal-table input[type="text"],
+.modal-table input[type="date"] {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 3px 6px;
+    font-size: 12px;
+}
+
+.modal-table input[type="text"] {
+    width: 100%;
+}
+
+.modal-table select {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 3px 4px;
+    font-size: 12px;
+}
+
+.modal-table textarea {
+    width: 100%;
+    height: 60px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 4px;
+    font-size: 12px;
+    resize: none;
+    box-sizing: border-box;
+}
+
+.modal-bottom {
+    text-align: right;
+    margin-top: 10px;
+}
+
+.btn-register {
+    background: var(--point-coral);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 16px;
+    font-size: 13px;
+    cursor: pointer;
+}

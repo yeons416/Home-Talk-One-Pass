@@ -1,0 +1,122 @@
+/*
+
+.top-bar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 10px;
+}
+
+.btn-write {
+    background: var(--main-navy);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 18px;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.btn-write:hover { background-color: #051a3a; }
+
+.notice-list {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.notice-list th {
+    background: var(--main-navy);
+    color: white;
+    padding: 10px 12px;
+    font-size: 14px;
+    text-align: center;
+}
+
+.notice-list td {
+    border-bottom: 1px solid var(--border-color);
+    padding: 10px 12px;
+    font-size: 15px;
+}
+
+.notice-list td:first-child {
+    text-align: center;
+    width: 80px;
+}
+
+.notice-list td:nth-child(3),
+.notice-list td:nth-child(4),
+.notice-list td:nth-child(5) {
+    text-align: center;
+    width: 120px;
+}
+
+.notice-list td a {
+    text-decoration: none;
+    color: #222;
+}
+
+.notice-list td a:hover { color: var(--point-coral); }
+
+.notice-list tr:hover { background-color: #f9f9f9; }
+
+.bottom-wrap {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    margin-top: 20px;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+}
+
+.pagination a {
+    text-decoration: none;
+    color: #333;
+    padding: 4px 10px;
+    font-size: 13px;
+    border-radius: 4px;
+}
+
+.pagination a:hover { color: var(--point-coral); }
+
+.active-page {
+    font-weight: bold;
+    color: var(--main-navy) !important;
+}
+
+.notice-search {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    position: absolute;
+    right: 0;
+}
+
+.notice-search input {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 13px;
+    outline: none;
+}
+
+.notice-search input:focus { border-color: var(--main-navy); }
+
+.btn-search {
+    background-color: var(--main-navy);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.btn-search:hover { background-color: #051a3a; }
+
+*/
