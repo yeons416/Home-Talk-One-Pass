@@ -1,4 +1,4 @@
 package com.hometalk.onepass.schedule.exception;
 
-public class ScheduleNotFoundException {
+public class ScheduleNotFoundException extends RuntimeException {
 }

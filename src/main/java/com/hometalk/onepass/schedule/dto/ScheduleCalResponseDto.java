@@ -9,13 +9,11 @@ import java.time.LocalDateTime;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-public class ScheduleResponseDto {
+public class ScheduleCalResponseDto {
 
     private Long id;
     private String title;
-    private String location;
     private LocalDateTime startAt;
     private LocalDateTime endAt;
-    private LocalDateTime createdAt;
 
 }

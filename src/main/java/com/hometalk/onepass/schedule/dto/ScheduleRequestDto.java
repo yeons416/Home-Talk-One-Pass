@@ -1,8 +1,11 @@
 package com.hometalk.onepass.schedule.dto;
 
-
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.*;
+
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -11,11 +14,23 @@ import lombok.*;
 @AllArgsConstructor
 public class ScheduleRequestDto {
 
-    @NotBlank
-    private String userId;
+    private Long noticeId; // 연결할 공지 (선택 사항)
 
     @NotBlank
+    @Size(max = 100)
     private String title;
 
+    private String info;
+
+    private String location;
+
+    @Size(max = 500)
+    private String referenceUrl;
+
+    @NotNull
+    private LocalDateTime startAt;
+
+    @NotNull
+    private LocalDateTime endAt;
 
 }

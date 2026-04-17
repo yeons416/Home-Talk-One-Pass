@@ -13,8 +13,8 @@ import java.time.LocalDateTime;
 
 @Entity
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)  // 외부에서 직접 객체 생성 못 함 (같은 패키지나 상속받은 클래스에서만 접근 가능)
-                                                    // → Builder로만 가능
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+
 public class Schedule extends BaseTimeEntity {
 
     @Id
@@ -56,7 +56,6 @@ public class Schedule extends BaseTimeEntity {
         this.startAt = startAt;
         this.endAt = endAt;
     }
-
     // 수정 메서드
     public void update(String title, String info, String location,
                        String referenceUrl, LocalDateTime startAt, LocalDateTime endAt) {
