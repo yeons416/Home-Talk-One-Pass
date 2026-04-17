@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @ToString
 public class NoticeDetailResponseDto {
 
-    private Long id;    // 이전/다음글 이동에서 필요
+    private Long id;
 
     private String title;
 
@@ -21,7 +21,7 @@ public class NoticeDetailResponseDto {
 
     private int viewCount;
 
-    private Badge badge;  // 중요, 시설, 안전, 일반
+    private Badge badge;
 
     private Boolean isPinned;
 

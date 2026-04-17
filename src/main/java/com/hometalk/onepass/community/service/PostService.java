@@ -2,14 +2,16 @@ package com.hometalk.onepass.community.service;
 
 import com.hometalk.onepass.auth.entity.User;
 import com.hometalk.onepass.auth.repository.UserRepository;
-import com.hometalk.onepass.community.dto.PostRequestDTO;
-import com.hometalk.onepass.community.dto.PostListResponse;
-import com.hometalk.onepass.community.dto.PostResponseDTO;
-import com.hometalk.onepass.community.dto.PostUserRsDTO;
+import com.hometalk.onepass.community.dto.request.PostRequestDTO;
+import com.hometalk.onepass.community.dto.response.PostListResponse;
+import com.hometalk.onepass.community.dto.response.PostResponseDTO;
+import com.hometalk.onepass.community.dto.response.PostUserRsDTO;
 import com.hometalk.onepass.community.entity.Board;
 import com.hometalk.onepass.community.entity.Category;
 import com.hometalk.onepass.community.entity.Post;
 import com.hometalk.onepass.community.enums.PostStatus;
+import com.hometalk.onepass.community.exception.InvalidBoardCodeException;
+import com.hometalk.onepass.community.exception.PostNotFoundException;
 import com.hometalk.onepass.community.repository.BoardRepository;
 import com.hometalk.onepass.community.repository.CategoryRepository;
 import com.hometalk.onepass.community.repository.PostRepository;
@@ -22,8 +24,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.nio.file.AccessDeniedException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -39,7 +41,7 @@ public class PostService {
     @Transactional
     public Long postSave(String boardCode, PostRequestDTO dto, Long userId) {
         Board board = boardRepository.findByCode(boardCode)
-                .orElseThrow(() -> new IllegalArgumentException("해당 게시판이 존재하지 않습니다. " + boardCode));
+                .orElseThrow(() -> new InvalidBoardCodeException(boardCode));
         Category category = null;
         if (dto.getCategoryId() != null) {
             category = categoryRepository.findById(dto.getCategoryId())
@@ -56,6 +58,7 @@ public class PostService {
 
     // Read
     public Page<PostListResponse> postList(Long boardId, Long categoryId, int page) {
+        System.out.println("조회 요청 - boardId: " + boardId + ", page: " + page + ", status: " + PostStatus.ACTIVE);
         // 1. 상태값 설정
         PostStatus status = PostStatus.ACTIVE;
 
@@ -76,8 +79,8 @@ public class PostService {
     }
 
     // Read - 상세 페이지
-    public PostResponseDTO postDetail(Long postId, PostUserRsDTO currentUser) {
-        Post post = postRepository.findById(postId).orElseThrow(() -> new IllegalArgumentException("게시글이 없습니다."));
+    public PostResponseDTO postDetail(Long postId, PostUserRsDTO currentUser, String boardCode) {
+        Post post = postRepository.findById(postId).orElseThrow(() -> new PostNotFoundException(postId, boardCode));
         PostResponseDTO dto = new PostResponseDTO(post);
         postValidator.setAuthority(dto, post, currentUser);
         return dto;
@@ -91,9 +94,9 @@ public class PostService {
 
     // Update
     // 수정 화면에 데이터를 가져오기
-    public PostRequestDTO getPostForEdit(Long id) {
+    public PostRequestDTO getPostForEdit(Long id, String boardCode) {
         Post post = postRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("해당 게시글이 없습니다. id=" + id));
+                .orElseThrow(() -> new PostNotFoundException(id, boardCode));
 
         // 엔티티를 바로 RequestDTO로 변환해서 반환
         return PostRequestDTO.builder()
@@ -104,8 +107,8 @@ public class PostService {
                 .build();
     }
     @Transactional
-    public void postUpdate(Long id, PostRequestDTO dto, Long userId) throws AccessDeniedException {
-        Post post = postRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("게시글이 없습니다."));
+    public void postUpdate(Long id, PostRequestDTO dto, Long userId, String boardCode) {
+        Post post = postRepository.findById(id).orElseThrow(() -> new PostNotFoundException(id, boardCode));
         // 작성자 검증
         postValidator.validateOwner(post, userId);
         post.update(dto);
@@ -113,9 +116,9 @@ public class PostService {
 
     // Delete
     @Transactional
-    public void deletePost(Long id, Long currentUserId) {   // user merge 후에는 userId도 필요
+    public void deletePost(Long id, Long currentUserId, String boardCode) {   // user merge 후에는 userId도 필요
         // 게시글 조회
-        Post post = postRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("게시글이 없습니다."));
+        Post post = postRepository.findById(id).orElseThrow(() -> new PostNotFoundException(id, boardCode));
         // 권한 검증
         postValidator.validateOwner(post, currentUserId);
         post.softDelete();
@@ -129,7 +132,7 @@ public class PostService {
         return postRepository.findTempPosts(boardCode, userId, PostStatus.DRAFT)
                 .stream()
                 .map(PostListResponse::new)
-                .toList();
+                .collect(Collectors.toList());
     }
 
 }

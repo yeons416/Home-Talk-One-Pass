@@ -1,7 +1,6 @@
 package com.hometalk.onepass.community.service;
 
-import com.hometalk.onepass.community.dto.PostListResponse;
-import com.hometalk.onepass.community.dto.PostRequestDTO;
+import com.hometalk.onepass.community.dto.request.PostRequestDTO;
 import com.hometalk.onepass.community.enums.MarketStatus;
 import com.hometalk.onepass.community.entity.Post;
 import com.hometalk.onepass.community.enums.PostStatus;
@@ -9,8 +8,6 @@ import com.hometalk.onepass.community.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
