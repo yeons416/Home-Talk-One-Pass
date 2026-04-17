@@ -154,7 +154,7 @@ function pickUnpaidFilter(val, label) {
 }
 
 /* ================================================================
-   API 재조회 — GET /hometalk/api/billing/admin/unpaid
+   API 재조회 — GET /hometop/api/billing/admin/unpaid
    Controller 파라미터: year, month, dong, status, overdue, page, size
 ================================================================ */
 async function fetchUnpaidList() {

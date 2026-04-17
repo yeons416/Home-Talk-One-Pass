@@ -1,3 +1,4 @@
+/*
 package com.hometalk.onepass.billing.controller;
 
 import com.hometalk.onepass.billing.dto.BillingSummaryResponse;
@@ -46,7 +47,7 @@ public class BillingPageController {
                 .getContent();
 
         model.addAttribute("currentUri", request.getRequestURI());
-        model.addAttribute("contextPath", "/hometalk");
+        model.addAttribute("contextPath", "/hometop");
         model.addAttribute("unpaidList",    unpaidList);
         model.addAttribute("unpaidMonths",  unpaidList.stream()
                 .map(BillingSummaryResponse::getBillingMonth)
@@ -80,7 +81,7 @@ public class BillingPageController {
     public String uploadPage(Model model, HttpServletRequest request) {
         model.addAttribute("currentUri", request.getRequestURI());
         model.addAttribute("menu",        "billing");
-        model.addAttribute("contextPath", "/hometalk");
+        model.addAttribute("contextPath", "/hometop");
         return "billing/billing_admin_upload";
     }
 
@@ -118,9 +119,9 @@ public class BillingPageController {
         model.addAttribute("pageSize",    20);
         model.addAttribute("menu",        "billing");
         model.addAttribute("currentUri", request.getRequestURI());
-        model.addAttribute("contextPath", "/hometalk");
+        model.addAttribute("contextPath", "/hometop");
 
         return "billing/billing_admin_unpaid";
     }
 
-}
+}*/
