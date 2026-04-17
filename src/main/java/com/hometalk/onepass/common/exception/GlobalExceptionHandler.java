@@ -18,21 +18,6 @@ import java.util.List;
 @Slf4j
 @RestControllerAdvice // @ControllerAdvice + @ResponseBody. 모든 컨트롤러에 적용되는 전역 예외 핸들러.
 public class GlobalExceptionHandler {
-/*
-    // ── 1. 비즈니스 예외 ──────────────────────────────────────────────────────────
-    *//*
-     * 서비스 로직에서 throw new BusinessException(ErrorCode.XXX)으로 던진 예외.
-     * ErrorCode에 HTTP 상태와 메시지가 이미 정의되어 있으므로 그대로 꺼내 응답한다.
-     * 의도된 오류이므로 warn 레벨로 로깅한다
-     *//*
-    @ExceptionHandler(BusinessException.class)
-    public ResponseEntity<ErrorResponse> handleBusiness(BusinessException e) {
-        log.warn("[BusinessException] {}", e.getMessage());
-        ErrorCode ec = e.getErrorCode();
-        return ResponseEntity.status(ec.getStatus())
-                .body(ErrorResponse.of(ec, e.getMessage()));
-    }*/
-
     // ── 1. @Valid 검증 실패 (RequestBody) ─────────────────────────────────────────
     /*
      * @RequestBody에 @Valid를 붙였을 때 검증 실패 시 스프링이 자동으로 던진다.
@@ -137,7 +122,7 @@ public class GlobalExceptionHandler {
     // ── 8. 이외 나머지 예외 ───────────────────────────────────────────────────────────
     /*
      * 위 핸들러가 처리하지 못한 모든 예외가 여기로 떨어진다.
-     * 예상하지 못한 오류이므로 error 레벨로 스택트레이스 전체를 기록한다.
+     * 예상하지 못한 오류이므로 error 레벨로 전체를 기록한다.
      * 클라이언트에는 내부 구현이 드러나지 않도록 최소한의 메시지만 반환한다.
      */
     @ExceptionHandler(Exception.class)
