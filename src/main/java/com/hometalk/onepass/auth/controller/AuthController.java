@@ -3,6 +3,7 @@ package com.hometalk.onepass.auth.controller;
 import com.hometalk.onepass.auth.dto.SignUpDTO;
 import com.hometalk.onepass.auth.repository.UserRepository;
 import com.hometalk.onepass.auth.service.SignUpService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -37,7 +38,7 @@ public class AuthController {
 
     @PostMapping("register/signup")   // 회원가입 단계별 목록 처리
     public String signup(
-            @ModelAttribute("signUpDTO") SignUpDTO signUpDTO,      // DTO
+            @ModelAttribute("signUpDTO") @Valid SignUpDTO signUpDTO,      // DTO
             @RequestParam(required = false, defaultValue = "next") String action, // 버튼 상태
             @RequestParam(defaultValue = "1") int currentStep,  // 회원가입 단계
             Model model
