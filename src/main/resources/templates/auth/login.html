@@ -5,13 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>인증 페이지</title>
     <style>
-        * {
-            box-sizing: border-box;
-        }
-        .auth-container { width: 400px; margin: 20px auto; padding: 30px; text-align: center; border: solid 1px #bdbaba;  }
-        .input-group { margin-bottom: 10px; width: 100% }
-        input { width: 250px; padding: 10px; }
-        button { width: 250px; padding: 10px; background-color: #007bff; color: white; border: none; cursor: pointer; }
+        .auth-container { width: 300px; margin: 50px auto; text-align: center; }
+        .input-group { margin-bottom: 10px; }
+        input { width: 100%; padding: 8px; }
+        button { width: 100%; padding: 10px; background-color: #007bff; color: white; border: none; cursor: pointer; }
+        .switch-link { margin-top: 15px; font-size: 14px; }
     </style>
 
 </head>
@@ -20,7 +18,7 @@
 <div class="auth-container">
     <h2>Home Talk One Pass</h2>
     <h2>로그인</h2>
-    <form th:action="@{/auth/login}" method="post">
+    <form th:action="@{/login}" method="post">
         <div class="input-group">
             <input type="text" name="loginId" placeholder="아이디를 입력하세요." required>
         </div>

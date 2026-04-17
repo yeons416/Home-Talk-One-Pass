@@ -2,7 +2,7 @@ package com.hometalk.onepass.community.entity;
 
 import com.hometalk.onepass.auth.entity.User;
 import com.hometalk.onepass.common.entity.BaseSoftDeleteEntity;
-import com.hometalk.onepass.community.dto.request.PostRequestDTO;
+import com.hometalk.onepass.community.dto.PostRequestDTO;
 import com.hometalk.onepass.community.enums.MarketStatus;
 import com.hometalk.onepass.community.enums.PostStatus;
 import jakarta.persistence.*;

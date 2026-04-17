@@ -10,7 +10,9 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)      // JPA 스펙 상 기본 생성자 필수, PROTECTED로 외부 직접 생성 차단함.
@@ -18,7 +20,7 @@ import java.util.List;
 @Builder  // id를 제외하고 필요한 필드만 선택적으로 주입 가능함. 예: Book.builder().title("AI의 미래").price(30000).build()
 @Entity
 @Table(name = "Notification")  // 테이블명 명시. 생략 시 클래스명 기반 자동 지정됨. 테이블명은 복수형 사용.
-public class NotificationToParkingDto extends BaseTimeEntity {
+public class Notification extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -71,8 +73,8 @@ public class NotificationToParkingDto extends BaseTimeEntity {
     )
     private List<BillingItem> billingItems = new ArrayList<>(); // 초기값 할당 필수        // 전기료, 수도료, 청소비 등 항목명, 개별 항목 금액
 
-        public NotificationToParkingDto(Long id, Long user_id, String module_name, String category_alarm, String message,
-                                        Long reference_id, Boolean is_read, LocalDateTime createdAt) {
+        public Notification(Long id, Long user_id, String module_name, String category_alarm, String message,
+                        Long reference_id, Boolean is_read, LocalDateTime createdAt) {
 
         this.id = id;
         this.moduleName = module_name;

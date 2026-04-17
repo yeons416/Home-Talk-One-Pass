@@ -1,9 +1,10 @@
-package com.hometalk.onepass.community.dto.response;
+package com.hometalk.onepass.community.dto;
 
 import com.hometalk.onepass.community.entity.Post;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 

@@ -4,16 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HomeTOP Community</title>
-    <link rel="stylesheet" th:href="@{/css/community/common.css}">
-    <link rel="stylesheet" href="/css/community/poststyle.css" th:href="@{/css/community/post-list.css}">
+    <link rel="stylesheet" href="/css/community/poststyle.css" th:href="@{/css/community/poststyle.css}">
 </head>
 <body>
     <div th:replace="~{community/fragments/boardListHeader :: boardListHeader(boards=${boards}, boardId=${boardId})}"></div>
     <div th:replace="~{community/fragments/categoryBanner :: categoryBanner(board=${board}, categories=${categories}, categoryId=${categoryId})}"></div>
     <p>태그(tags)</p>
-<div class="content-container">
-    <div class="page-body">
-        <table class="post-table">
+
+    <div class="postList-container">
+        <table>
             <thead>
                 <tr>
                     <th>카테고리</th>
@@ -26,32 +25,21 @@
             </thead>
             <tbody th:if="${not #lists.isEmpty(posts)}">
                 <tr th:each="post : ${posts}">
-                    <td><span th:text="${post.categoryName}" class="list-category">카테고리</span></td>
-                    <td class="title-cell">
-                        <a th:href="@{/community/{bCode}/{cCode}/{id}(bCode=${board.code}, cCode=${categoryCode}, id=${post.id})}"
-                           th:text="${post.title}"></a>
-                    </td>
-                    <td th:text="${post.commentCount}" class="comment-count"></td>
+                    <td th:text="${post.categoryName}"></td>
+                    <td><a th:href="@{/community/{code}/{id}(code=${board.code}, id=${post.id})}" th:text="${post.title}"></a></td>
+                    <td th:text="${post.commentCount}"></td>
                     <td th:text="${post.writer}">작성자</td>
                     <td th:text="${post.viewCount}"></td>
-                    <td th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd')}" class="date-cell"></td>
+                    <td th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd')}"></td>
                 </tr>
             </tbody>
         </table>
 
-        <div th:if="${#lists.isEmpty(posts)}" class="no-data">
-            <p>게시글이 없습니다.<br>새 게시글을 작성해보세요!</p>
-        </div>
+        <div th:replace="~{community/fragments/postpaging :: pagination(page=${page}, boardCode=${boardCode}, categoryCode=${categoryCode})}"></div>
     </div>
-
-    <div class="page-footer">
-        <div class="pagination-wrapper">
-            <div th:replace="~{community/fragments/postpaging :: pagination(page=${page}, boardCode=${boardCode}, categoryCode=${categoryCode})}"></div>
-        </div>
-        <div class="action-wrapper">
-            <a th:href="@{/community/{code}/write(code=${board.code})}" class="btn add-post-btn">글 작성</a>
-        </div>
+    <p th:if="${#lists.isEmpty(posts)}" class="no-data">게시글이 없습니다.<br>새 게시글을 작성해보세요!</p>
+    <div >
+        <a th:href="@{/community/{code}/write(code=${board.code})}" class="btn add-post-btn">글 작성</a>
     </div>
-</div>
 </body>
 </html>

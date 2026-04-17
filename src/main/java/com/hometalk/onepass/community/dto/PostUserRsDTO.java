@@ -1,4 +1,4 @@
-package com.hometalk.onepass.community.dto.response;
+package com.hometalk.onepass.community.dto;
 
 import com.hometalk.onepass.auth.entity.User;
 import com.hometalk.onepass.community.entity.Post;

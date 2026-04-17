@@ -30,13 +30,13 @@ public class Household {
     private String ho;
 
     @Column(name = "post_num", nullable = false)
-    private String postNum;
+    private Integer postNum;
 
     @OneToMany(mappedBy = "household", fetch = FetchType.LAZY)
     private List<User> users = new ArrayList<>();
 
     @Builder
-    public Household(String buildingName, String dong, String ho, String postNum) {
+    public Household(String buildingName, String dong, String ho, Integer postNum) {
         this.buildingName = buildingName;
         this.dong = dong;
         this.ho = ho;

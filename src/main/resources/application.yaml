@@ -1,6 +1,6 @@
 server:
   servlet:
-    context-path: /hometop
+    context-path: /hometalk
   port: 8090                # 포트 번호 명시 (사용 중인 포트로 확인)
 
 spring:

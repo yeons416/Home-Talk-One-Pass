@@ -1,4 +1,4 @@
-package com.hometalk.onepass.community.dto.request;
+package com.hometalk.onepass.community.dto;
 
 import com.hometalk.onepass.community.entity.Board;
 import com.hometalk.onepass.community.entity.Category;
