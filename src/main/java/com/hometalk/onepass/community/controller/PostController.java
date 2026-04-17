@@ -97,7 +97,7 @@ public class PostController {
         // 3. 공통 레이아웃 데이터
         BoardResponseDTO board = boardService.findByCode(boardCode);
         addLayoutAttributes(board, category, model, false);
-
+        model.addAttribute("boardCode", boardCode);
         model.addAttribute("currentCategoryCode", categoryCode);
 
         // 댓글

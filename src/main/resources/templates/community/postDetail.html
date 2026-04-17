@@ -67,11 +67,12 @@
         </div>
 
         <div class="comment-section">
-            <h3>댓글</h3>
-            <p>댓글 기능 준비 중...</p>
+            <div th:replace="~{community/postComment :: postComment(${boardCode}, ${categoryCode}, ${post.id}, ${comments})}"></div>
         </div>
     </div>
 
+
     <script th:src="@{/js/community/post.js}" defer></script>
+    <script th:src="@{/js/community/comment.js}"></script>
 </body>
 </html>

@@ -38,7 +38,7 @@ public class CommentController {
         commentService.saveComment(postId, tempUserId, commentRqDTO);
 
         redirectAttributes.addFlashAttribute("successMessage", "댓글이 등록되었습니다.");
-
+        log.info("입력된 댓글 내용: {}", commentRqDTO.getContent());
         // 처리가 끝나면 다시 상세 페이지로 리다이렉트
         return String.format("redirect:/community/%s/%s/%d", boardCode, categoryCode, postId);
     }

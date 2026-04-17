@@ -1,65 +1,66 @@
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 
-<style>
-    .pagination-container {
-        display: grid;
-        /* 1fr(왼쪽비움) : auto(페이지네이션) : 1fr(오른쪽버튼자리) */
-        grid-template-columns: 1fr auto 1fr;
-        align-items: center;
-        width: 100%;
-        margin-top: 2rem;
-    }
-
-    /* nav 태그를 2번째 칸으로 지정 */
-    .pagination-nav {
-        grid-column: 2;
-    }
-
-    .pagination {
-        display: flex;
-        list-style: none;
-        gap: 8px;
-        padding: 0;
-        margin: 0;
-    }
-
-    .pagination li a {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 35px;
-        height: 35px;
-        background-color: transparent;
-        border: 1px solid transparent;
-        color: #94a3b8;
-        font-size: 14px;
-        text-decoration: none; /* 밑줄 방지 */
-        transition: all 0.2s ease;
-    }
-
-    /* 활성화 상태 */
-    .pagination li.active a {
-        color: #4073C9; /* Navy 포인트 */
-        font-weight: 800;
-        border-bottom: 2px solid #4073C9;
-        border-radius: 0;
-    }
-
-    /* 비활성화 상태 (처음/끝 페이지일 때) */
-    .pagination li.disabled a {
-        opacity: 0.3;
-        pointer-events: none;
-    }
-
-    /* 글 작성 버튼이나 여백을 위한 설정 */
-    .action-wrapper {
-        grid-column: 3;
-        text-align: right;
-    }
-</style>
-
 <div th:fragment="pagination(page, boardCode, categoryCode)">
+    <style>
+        .pagination-container {
+            display: grid;
+            /* 1fr(왼쪽비움) : auto(페이지네이션) : 1fr(오른쪽버튼자리) */
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            width: 100%;
+            margin-top: 2rem;
+        }
+
+        /* nav 태그를 2번째 칸으로 지정 */
+        .pagination-nav {
+            grid-column: 2;
+        }
+
+        .pagination {
+            display: flex;
+            list-style: none;
+            gap: 8px;
+            padding: 0;
+            margin: 0;
+        }
+
+        .pagination li a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 35px;
+            height: 35px;
+            background-color: transparent;
+            border: 1px solid transparent;
+            color: #94a3b8;
+            font-size: 14px;
+            text-decoration: none; /* 밑줄 방지 */
+            transition: all 0.2s ease;
+        }
+
+        /* 활성화 상태 */
+        .pagination li.active a {
+            color: #4073C9; /* Navy 포인트 */
+            font-weight: 800;
+            border-bottom: 2px solid #4073C9;
+            border-radius: 0;
+        }
+
+        /* 비활성화 상태 (처음/끝 페이지일 때) */
+        .pagination li.disabled a {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        /* 글 작성 버튼이나 여백을 위한 설정 */
+        .action-wrapper {
+            grid-column: 3;
+            text-align: right;
+        }
+    </style>
+
+
     <div th:if="${!page.isEmpty()}" class="pagination-container">
         <nav aria-label="Page navigation" class="pagination-nav">
             <ul class="pagination">
