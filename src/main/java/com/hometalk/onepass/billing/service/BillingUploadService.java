@@ -85,12 +85,10 @@ public class BillingUploadService {
         int updateCount = 0;
 
         for (UploadRow row : rows) {
-
             if (validate(row) != null) continue;
 
-            // householdId("101-101") → Household 조회
             Optional<Household> householdOpt = findHousehold(row.getHouseholdId());
-            if (householdOpt.isEmpty()) continue; // 세대 없으면 스킵
+            if (householdOpt.isEmpty()) continue;
 
             Household household = householdOpt.get();
 
@@ -101,13 +99,11 @@ public class BillingUploadService {
             Billing billing;
 
             if (existing.isPresent()) {
-                // UPDATE
                 billing = existing.get();
                 billing.updateByUpload(row.getTotalAmount(), row.getDueDate());
                 billingDetailRepository.deleteByBilling_Id(billing.getId());
                 updateCount++;
             } else {
-                // INSERT
                 billing = billingRepository.save(Billing.builder()
                         .household(household)
                         .billingMonth(row.getBillingMonth())
@@ -118,7 +114,7 @@ public class BillingUploadService {
                 insertCount++;
             }
 
-            // billing_details 저장 (sortOrder 포함)
+            // billing_details 저장
             List<BillingDetail> details = new ArrayList<>();
             List<ItemRow> items = row.getItems();
             for (int i = 0; i < items.size(); i++) {
@@ -131,9 +127,13 @@ public class BillingUploadService {
             }
             billingDetailRepository.saveAll(details);
 
-            // billing_logs UPLOAD 기록
+            // ← 세대별 로그 저장 제거
+        }
+
+        // 업로드 단위로 로그 1건만 저장
+        if (insertCount + updateCount > 0) {
             billingLogRepository.save(BillingLog.builder()
-                    .billing(billing)
+                    .billing(null)   // 특정 세대 아님
                     .userId(adminId)
                     .actionType(BillingActionType.UPLOAD)
                     .build());
