@@ -11,7 +11,15 @@
         .auth-container { width: 400px; margin: 20px auto; padding: 30px; text-align: center; border: solid 1px #bdbaba;  }
         .input-group { margin-bottom: 10px; width: 100% }
         input { width: 250px; padding: 10px; }
-        button { width: 250px; padding: 10px; background-color: #007bff; color: white; border: none; cursor: pointer; }
+        button { width: 250px; padding: 10px; background-color: #007bff; color: white; border: none; cursor: pointer; height: 40px; }
+
+        .kakao-btn-container { margin-top: 15px; }
+        .kakao-btn-container img {
+        width: 100%;
+        max-width: 250px; /* input과 동일한 사이즈 */
+        display: block;
+        margin: 0 auto;
+    }
     </style>
 
 </head>
@@ -32,6 +40,13 @@
 
     <div class="other-contain">
         <p>계정이 없으신가요? <a th:href="@{/auth/register}">회원가입</a></p>
+
+        <p>소셜로 로그인</p>
+        <div class="kakao-btn-container">
+        <a th:href="@{/oauth2/authorization/kakao}">
+            <img th:src="@{/auth/loginimage/kakao_login.png}" alt="카카오 로그인">
+        </a>
+    </div>
     </div>
 </div>
 

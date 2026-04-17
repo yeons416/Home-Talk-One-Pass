@@ -7,6 +7,17 @@ spring:
     username: onepass
     password: hometop402
     driver-class-name: com.mysql.cj.jdbc.Driver
+  security:
+    oauth:
+      client:
+        registration:
+          Kakao:
+            client-id: 4ad79c0bcd4a2a0ab2ac8b3d0fb76b76
+            client-secret: k8NJmdYf0NQAD0JShTsmevgS5Q4qzz2s
+
+
+
+
   # SQL 초기화 스크립트 설정
   sql:
     init:

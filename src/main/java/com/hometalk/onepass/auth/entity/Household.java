@@ -1,16 +1,15 @@
 package com.hometalk.onepass.auth.entity;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import jakarta.validation.constraints.NotNull;
+import lombok.*;
 
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+@Value
 @Entity
 @Table(name = "household")
 @Getter
@@ -20,16 +19,19 @@ public class Household {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotNull
     @Column(name = "building_name", nullable = false, length = 100)
     private String buildingName;
 
+    @NotNull
     @Column(name = "dong", nullable = false, length = 20)
     private String dong;
 
+    @NotNull
     @Column(name = "ho", nullable = false, length = 20)
     private String ho;
 
-
+    @NotNull
     @Column(name = "post_num", nullable = false)
     private String postNum;
 

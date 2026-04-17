@@ -1,152 +1,54 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>공지 작성</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
 
-        :root {
-            --main-navy: #032154;
-            --point-coral: #EB6E57;
-            --bg-gray: #F4F7F9;
-            --border-color: #E2E8F0;
+        .notice-title-wrap {
+            border: 1px solid #ddd;
+            padding: 0;
+            display: flex;
+            align-items: stretch;
         }
 
-        body {
-            font-family: 'Pretendard', sans-serif;
-            background-color: var(--bg-gray);
-            padding: 20px;
-            color: #333;
-            line-height: 1.6;
-            min-height: 100vh;
+        .notice-title-wrap label {
+            white-space: nowrap;
+            font-size: 13px;
+            padding: 8px 16px;
+            border-right: 1px solid #ddd;
+            background: #f5f5f5;
+            display: flex;
+            align-items: center;
         }
 
-        .container {
-            max-width: 80%;
-            margin: 20px auto;
-            background: white;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-        }
-
-        h2 {
-            color: var(--main-navy);
-            margin-bottom: 20px;
-            font-size: 1.3rem;
-            font-weight: 600;
-        }
-
-        .form-group { margin-bottom: 15px; }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
-            color: var(--main-navy);
-            font-size: 14px;
-        }
-
-        .form-group select,
-        .form-group input[type="text"] {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 14px;
+        .notice-title-wrap input {
+            border: none;
             outline: none;
+            width: 100%;
+            font-size: 13px;
+            padding: 8px 12px;
         }
 
-        .form-group select:focus,
-        .form-group input[type="text"]:focus { border-color: var(--main-navy); }
 
-        .form-group small { color: #999; font-size: 12px; }
+        .notice-content-wrap {
+            border: 1px solid #ddd;
+            min-height: 400px;
+            position: relative;
+        }
 
-        .form-group textarea {
+        .notice-content {
             width: 100%;
+            min-height: 400px;
+            border: none;
+            outline: none;
             padding: 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 14px;
             resize: none;
-            outline: none;
+            font-size: 14px;
             box-sizing: border-box;
         }
 
-        .form-group textarea:focus { border-color: var(--main-navy); }
-
-        .notice-content-wrap { position: relative; }
-
-        .button-group {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 20px;
-        }
-
-        .button-group-left { display: flex; align-items: center; gap: 10px; }
-        .button-group-right { display: flex; align-items: center; gap: 10px; }
-
-        .btn {
-            display: inline-block;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-weight: bold;
-            font-size: 13px;
-            cursor: pointer;
-            border: none;
-            transition: all 0.3s;
-            text-decoration: none;
-        }
-
-        .btn-cancel {
-            background: white;
-            color: #666;
-            border: 1px solid var(--border-color);
-        }
-
-        .btn-cancel:hover { background: #f5f5f5; }
-
-        .btn-file {
-            background-color: var(--main-navy);
-            color: white;
-            cursor: pointer;
-        }
-
-        .btn-file:hover { background-color: #051a3a; }
-
-        input[type="file"] { display: none; }
-
-        .btn-schedule {
-            background-color: var(--main-navy);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 10px 20px;
-            font-size: 13px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .btn-schedule:hover { background-color: #051a3a; }
-
-        .btn-submit {
-            background-color: var(--point-coral);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 10px 20px;
-            font-size: 13px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 4px 10px rgba(235, 110, 87, 0.3);
-        }
-
-        .btn-submit:hover { background-color: #d65a45; }
-
-        .checkbox-group { display: flex; align-items: center; gap: 8px; font-size: 14px; }
 
         .schedule-modal {
             display: none;
@@ -158,13 +60,12 @@
             width: 300px;
             overflow: hidden;
             box-shadow: 0 8px 32px rgba(0,0,0,0.15);
-            z-index: 100;
         }
 
         .schedule-modal.open { display: block; }
 
         .modal-header {
-            background: var(--main-navy);
+            background: #1a1c2e;
             color: white;
             padding: 14px 18px;
             display: flex;
@@ -185,146 +86,164 @@
         }
 
         .modal-body { padding: 16px; }
-        .modal-table { width: 100%; border-collapse: collapse; }
-        .modal-table td { padding: 6px 4px; font-size: 13px; vertical-align: middle; }
-        .modal-table td:first-child { white-space: nowrap; width: 50px; color: #444; }
-        .modal-table input[type="text"], .modal-table input[type="date"] { border: 1px solid #ddd; border-radius: 4px; padding: 3px 6px; font-size: 12px; }
+
+        .modal-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .modal-table td {
+            padding: 6px 4px;
+            font-size: 13px;
+            vertical-align: middle;
+        }
+
+        .modal-table td:first-child {
+            white-space: nowrap;
+            width: 50px;
+            color: #444;
+        }
+
+        .modal-table input[type="text"],
+        .modal-table input[type="date"] {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 3px 6px;
+            font-size: 12px;
+        }
+
         .modal-table input[type="text"] { width: 100%; }
-        .modal-table select { border: 1px solid #ddd; border-radius: 4px; padding: 3px 4px; font-size: 12px; }
-        .modal-table textarea { width: 100%; height: 60px; border: 1px solid #ddd; border-radius: 4px; padding: 4px; font-size: 12px; resize: none; box-sizing: border-box; }
-        .modal-bottom { text-align: right; margin-top: 10px; }
-        .btn-register { background: var(--point-coral); color: white; border: none; border-radius: 6px; padding: 6px 16px; font-size: 13px; cursor: pointer; }
+
+        .modal-table select {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 3px 4px;
+            font-size: 12px;
+        }
+
+        .modal-table textarea {
+            width: 100%;
+            height: 60px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 4px;
+            font-size: 12px;
+            resize: none;
+            box-sizing: border-box;
+        }
+
+        .modal-bottom {
+            text-align: right;
+            margin-top: 10px;
+        }
+
+        .btn-register {
+            background: #51587e;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 16px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+
+        .notice-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .notice-bottom button,
+        .notice-bottom label.btn-file {
+            background: #3b4169;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 20px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .notice-bottom input[type="file"] { display: none; }
+        .notice-bottom input[type="checkbox"] { margin-right: 4px; }
+
+        .notice-bottom-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
     </style>
-    <link rel="stylesheet" th:href="@{/css/dashboard/style.css}">
 </head>
 <body>
+<div th:replace="fragments/noticeHeader :: notice-page-header"></div>
 
-<div class="main-layout" style="display: flex; min-height: 100vh;">
 
-    <!-- 1. 왼쪽 사이드바 -->
-    <div th:replace="~{fragments/sidebar :: sidebar(currentPage='notice')}"></div>
+<div class="notice-title-wrap">
+    <label for="title">제목</label>
+    <input type="text" id="title" name="title">
+</div>
 
-    <!-- 2. 오른쪽 영역 (헤더 + 본문) -->
-    <div class="main-wrapper" style="flex: 1; display: flex; flex-direction: column;">
 
-        <!-- 상단 헤더 -->
-        <div th:replace="~{fragments/headerCurrentMenuView :: path(paths=${ {'notice'} })}"></div>
+<div class="notice-content-wrap">
+    <textarea name="content" class="notice-content"></textarea>
 
-        <!-- 상단 메뉴 -->
-        <!--        <div th:replace="~{fragments/headerCategoryMenu :: parking}"></div>-->
 
-        <div th:replace="~{fragments/NoticePageHeader :: notice-page-header}"></div>
-
-        <!-- 메인 콘텐츠 -->
-        <main class="content">
-            <div class="container">
-                <h2>공지 작성</h2>
-
-                <form th:action="@{/notice/write}" method="post" enctype="multipart/form-data" id="noticeForm">
-
-                    <div class="form-group">
-                        <label for="badge">분류</label>
-                        <select id="badge" name="badge" required>
-                            <option value="">분류 선택</option>
-                            <option value="IMPORTANT">중요</option>
-                            <option value="FACILITY">시설</option>
-                            <option value="SAFETY">안전</option>
-                            <option value="NORMAL">일반</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="title">제목</label>
-                        <input type="text" id="title" name="title" placeholder="제목을 입력하세요 (최대 100자)" maxlength="100" required>
-                        <small><span id="charCount">0</span>/100</small>
-                    </div>
-
-                    <div class="form-group notice-content-wrap">
-                        <label>내용</label>
-                        <textarea name="content" rows="15" placeholder="내용을 입력하세요" required></textarea>
-
-                        <div class="schedule-modal" id="scheduleModal">
-                            <div class="modal-header">
-                                <span>일정 등록</span>
-                                <button type="button" onclick="document.getElementById('scheduleModal').classList.remove('open')">X</button>
-                            </div>
-                            <div class="modal-body">
-                                <table class="modal-table">
-                                    <tr>
-                                        <td>일정명</td>
-                                        <td><input type="text" name="scheduleName" placeholder="일정명을 입력하세요."></td>
-                                    </tr>
-                                    <tr>
-                                        <td>시작</td>
-                                        <td>
-                                            <input type="date" name="startDate">
-                                            <select name="startHour"><option>00</option></select>
-                                            <select name="startMinute"><option>00</option></select>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>종료</td>
-                                        <td>
-                                            <input type="date" name="endDate">
-                                            <select name="endHour"><option>23</option></select>
-                                            <select name="endMinute"><option>59</option></select>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>설명</td>
-                                        <td><textarea name="scheduleDesc"></textarea></td>
-                                    </tr>
-                                </table>
-                                <div class="modal-bottom">
-                                    <button type="button" class="btn-register">등록</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="button-group">
-                        <div class="button-group-left">
-                            <input type="file" id="file" name="file">
-                            <label for="file" class="btn btn-file">파일 올리기</label>
-                        </div>
-                        <div class="button-group-right">
-                            <div class="checkbox-group">
-                                <input type="checkbox" id="isPinned" name="isPinned" value="true">
-                                <label for="isPinned">상단 고정</label>
-                            </div>
-                            <button type="button" class="btn-schedule"
-                                    onclick="document.getElementById('scheduleModal').classList.add('open')">일정 등록</button>
-                            <a th:href="@{/notice}" class="btn btn-cancel" onclick="return confirmCancel()">취소</a>
-                            <button type="submit" class="btn-submit">게시</button>
-                        </div>
-                    </div>
-
-                </form>
+    <div class="schedule-modal" id="scheduleModal">
+        <div class="modal-header">
+            <span>일정 등록</span>
+            <button type="button"
+                    onclick="document.getElementById('scheduleModal').classList.remove('open')">X</button>
+        </div>
+        <div class="modal-body">
+            <table class="modal-table">
+                <tr>
+                    <td>일정명</td>
+                    <td><input type="text" name="scheduleName" placeholder="일정명을 입력하세요."></td>
+                </tr>
+                <tr>
+                    <td>시작</td>
+                    <td>
+                        <input type="date" name="startDate">
+                        <select name="startHour"><option>00</option></select>
+                        <select name="startMinute"><option>00</option></select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>종료</td>
+                    <td>
+                        <input type="date" name="endDate">
+                        <select name="endHour"><option>23</option></select>
+                        <select name="endMinute"><option>59</option></select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>설명</td>
+                    <td><textarea name="scheduleDesc"></textarea></td>
+                </tr>
+            </table>
+            <div class="modal-bottom">
+                <button type="button" class="btn-register">등록</button>
             </div>
-        </main>
-
-        <!-- 하단 푸터 삽입 -->
-        <footer th:replace="~{fragments/footer :: footer}"></footer>
+        </div>
     </div>
 </div>
 
 
-
-
-
-<script>
-    document.getElementById('title').addEventListener('input', function() {
-        document.getElementById('charCount').innerText = this.value.length;
-    });
-
-    function confirmCancel() {
-        if (confirm("작성 중인 내용을 중단하고 목록으로 돌아가시겠습니까?")) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-</script>
+<div class="notice-bottom">
+    <div>
+        <input type="file" id="file" name="file">
+        <label for="file" class="btn-file">파일 올리기</label>
+    </div>
+    <div class="notice-bottom-right">
+        <input type="checkbox" id="pinned" name="pinned">
+        <label for="pinned">상단 고정</label>
+        <button type="button" class="btn-schedule"
+                onclick="document.getElementById('scheduleModal').classList.add('open')">일정 등록</button>
+        <button type="button" class="btn-submit">게시</button>
+    </div>
+</div>
 
 </body>
 </html>

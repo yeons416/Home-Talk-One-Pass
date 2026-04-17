@@ -34,6 +34,8 @@
                 </tr>
             </tbody>
         </table>
+
+        <div th:replace="~{community/fragments/postpaging :: pagination(page=${page}, boardCode=${boardCode}, categoryCode=${categoryCode})}"></div>
     </div>
     <p th:if="${#lists.isEmpty(posts)}" class="no-data">게시글이 없습니다.<br>새 게시글을 작성해보세요!</p>
     <div >

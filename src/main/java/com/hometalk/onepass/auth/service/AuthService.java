@@ -8,10 +8,13 @@ import com.hometalk.onepass.auth.repository.HouseholdRepository;
 import com.hometalk.onepass.auth.repository.LocalAccountRepository;
 import com.hometalk.onepass.auth.repository.UserRepository;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
+@Validated
 @Service
 @RequiredArgsConstructor
 public class SignUpService {
@@ -23,7 +26,7 @@ public class SignUpService {
 
     // 회원 가입 서비스
     @Transactional
-    public void signUp(SignUpDTO dto) {
+    public void signUp(@Valid SignUpDTO dto) {
         // 1. Household (세대 정보) 생성 및 저장
         // 세대 정보는 여러 유저가 공유할 수 있으나, 가입 시점에 생성하는 로직으로 작성합니다.
         Household household = Household.builder()

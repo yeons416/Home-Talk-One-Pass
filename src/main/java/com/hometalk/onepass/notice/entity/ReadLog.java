@@ -3,13 +3,10 @@ package com.hometalk.onepass.notice.entity;
 
 import com.hometalk.onepass.common.entity.BaseTimeEntity;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-
+import lombok.Data;
 
 @Entity
-@Getter
-@Setter
+@Data
 @Table(name = "read_log",
         uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "notice_id"}))
 public class ReadLog extends BaseTimeEntity {

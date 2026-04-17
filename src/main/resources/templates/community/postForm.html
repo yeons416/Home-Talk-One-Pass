@@ -11,57 +11,49 @@
 <div th:replace="~{community/fragments/categoryBanner :: categoryBanner(board=${board}, categories=${categories}, categoryId=${categoryId})}"></div>
 
 <div class="container">
-    <h2 th:text="${board.name} + ' 글쓰기'">커뮤니티 글쓰기</h2>
+    <div class="header-row">
+        <h2 th:text="${board.name} + ' 글쓰기'">커뮤니티 글쓰기</h2>
+        <button type="button" id="btnLoadTemp" class="btn-sub">
+            임시저장 글 (<span th:text="${tempCount}">0</span>)
+        </button>
+    </div>
 
     <form th:action="@{/community/{code}/save(code=${board.code})}" method="post" id="postForm" th:object="${post}">
-        <div class="form-group">
+        <div class="form-group tag-group">
             <label>태그 선택: </label>
             <input type="checkbox" name="tags" value="공지"> 공지
             <input type="checkbox" name="tags" value="질문"> 질문
             <input type="checkbox" name="tags" value="정보"> 정보
         </div>
 
-        <div class="form-group">
-            <select th:field="*{categoryId}" required>
+        <div class="form-inline-group">
+            <select th:field="*{categoryId}" required class="category-select">
                 <option value="">카테고리 선택</option>
                 <option th:each="category : ${categories}" th:value="${category.id}"
                         th:text="${category.name}">카테고리 명</option>
             </select>
+
+            <div class="title-input-wrapper">
+                <input type="text" id="title" th:field="*{title}" placeholder="제목을 입력하세요 (최대 50자)"
+                       maxlength="50" required>
+                <small><span id="charCount">0</span>/50</small>
+            </div>
         </div>
 
         <input type="hidden" th:field="*{id}">
 
-        <div class="form-group">
-            <input type="text" id="title" th:field="*{title}" placeholder="제목을 입력하세요 (최대 50자)"
-                   maxlength="50" required style="width: 100%;">
-            <small><span id="charCount">0</span>/50</small>
-        </div>
-
-        <div style="background: #f4f4f4; padding: 5px; border: 1px solid #ccc;">
+        <div class="editor-header">
             <small>에디터 툴바 영역 (폰트, 정렬 등 구현 예정)</small>
         </div>
-
         <div class="form-group">
-            <textarea th:field="*{content}" rows="15" placeholder="내용을 입력하세요"
-                      style="width: 100%;" required></textarea>
+            <textarea th:field="*{content}" rows="15" placeholder="내용을 입력하세요" required></textarea>
         </div>
 
-        <div class="button-group" style="margin-top: 20px;">
+        <div class="button-group">
             <a th:href="@{/community/{code}(code=${board.code})}" onclick="return confirmCancel()">취소</a>
-
-            <button type="button"
-                    th:if="${post.id == null}"      <!-- 신규 작성 시에만 버튼 보이도록 -->
-                    onclick="saveTemp()">임시저장</button>
-            <button type="button" id="btnLoadTemp" class="btn-sub">임시저장 글 (<span th:text="${tempCount}">0</span>)</button>
-
-            <button type="submit">등록</button>
-        </div>
-
-        <div id="tempListModal" style="display:none;" class="temp-modal">
-            <div class="modal-content">
-                <h3>임시저장 글 <span class="close-modal">&times;</span></h3>
-                <ul id="tempListArea">
-                </ul>
+            <div class="right-buttons">
+                <button type="button" th:if="${post.id == null}" onclick="saveTemp()">임시저장</button>
+                <button type="submit">등록</button>
             </div>
         </div>
 
@@ -69,7 +61,15 @@
     </form>
 </div>
 
-<script>
+<div id="tempListModal" style="display:none;" class="temp-modal">
+    <div class="modal-content">
+        <h3>임시저장 글 <span class="close-modal">&times;</span></h3>
+        <ul id="tempListArea">
+        </ul>
+    </div>
+</div>
+
+<script th:inline="javascript">
     // 제목 글자 수 카운트
     document.getElementById('title').addEventListener('input', function() {
         document.getElementById('charCount').innerText = this.value.length;
@@ -86,10 +86,57 @@
 
     // 임시저장 로직
     function saveTemp() {
-        document.getElementById('isTemp').value = "true";
-        alert("임시저장 되었습니다. (목록에는 숨김 처리됩니다)");
-        document.getElementById('postForm').submit();
+        const categoryElement = document.getElementById('categoryId');
+        const categoryValue = categoryElement ? categoryElement.value : "";
+
+        if (!categoryValue || categoryValue === "") {
+            alert("카테고리를 선택해야 임시저장이 가능합니다.");
+            if(categoryElement) categoryElement.focus();
+            return; // 여기서 멈춤 (submit 안 함)
+        }
+
+        if (confirm("현재 내용을 임시저장하시겠습니까?")) {
+            document.getElementById('isTemp').value = "true";
+            alert("임시저장 되었습니다.")
+            document.getElementById('postForm').submit();
+        }
     }
+
+    // 임시저장 글 (숫자) 클릭 시 모달 열기 및 목록 조회
+    document.querySelector('#btnLoadTemp').addEventListener('click', function() {
+        const boardCode = [[${boardCode}]]; // 타임리프 변수 활용
+
+        fetch('/hometalk/community/' + boardCode + '/temp-list')
+            .then(response => {
+                if (!response.ok) throw new Error('목록을 불러오는데 실패했습니다.');
+                return response.json();
+            })
+            .then(data => {
+                const listArea = document.getElementById('tempListArea');
+                listArea.innerHTML = ''; // 기존 목록 초기화
+
+                if (!data || data.length === 0) {
+                    listArea.innerHTML = '<li class="no-data">임시저장된 글이 없습니다.</li>';
+                } else {
+                    data.forEach(post => {
+                        console.log("임시저장 데이터: " + post);
+                        listArea.innerHTML += `
+                            <li onclick="location.href='/hometalk/community/${boardCode}/write?id=${post.id}'">
+                                <span class="temp-title">${post.title || '제목 없음'}</span>
+                                <span class="temp-date">${post.createdAt || ''}</span>
+                                <span class="temp-category">[${post.categoryName || '미지정'}]</span>
+                            </li>`;
+                    });
+                }
+                document.getElementById('tempListModal').style.display = 'block';
+            })
+            .catch(err => alert(err.message));
+    });
+
+    // 모달 닫기 로직
+    document.querySelector('.close-modal').onclick = () => {
+        document.getElementById('tempListModal').style.display = 'none';
+    };
 </script>
 </body>
 </html>

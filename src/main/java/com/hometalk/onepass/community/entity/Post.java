@@ -106,4 +106,7 @@ public class Post extends BaseSoftDeleteEntity {
     public void updateMarketStatus(MarketStatus newStatus) {
         this.marketStatus = newStatus;
     }
+    public void updateStatus(PostStatus status) {
+        this.postStatus = status;
+    }
 }
