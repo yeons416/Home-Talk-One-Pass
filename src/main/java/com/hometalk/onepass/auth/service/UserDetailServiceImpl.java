@@ -2,7 +2,9 @@ package com.hometalk.onepass.auth.service;
 
 import com.hometalk.onepass.auth.entity.LocalAccount;
 import com.hometalk.onepass.auth.repository.LocalAccountRepository;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.NonNull;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
