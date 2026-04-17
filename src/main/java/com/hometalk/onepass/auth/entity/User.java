@@ -63,13 +63,15 @@ public class User extends BaseSoftDeleteEntity {
 
     @Builder
     public User(String name, String nickname, String email,
-                String phoneNumber, UserStatus status, UserRole role) {
+                String phoneNumber, UserStatus status, UserRole role,
+                Household household) {
         this.name = name;
         this.nickname = nickname;
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.status = status != null ? status : UserStatus.PENDING;
         this.role = role != null ? role : UserRole.MEMBER;
+        this.household = household;
     }
 
     // 세대 배정 (관리자 승인 시 호출)

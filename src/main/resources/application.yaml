@@ -6,13 +6,6 @@ server:
 spring:
   application:
     name: onepass
-  security:
-    oauth2:
-      client:
-        registration:
-          github:
-            client-id: Iv23liKMwZQUONmJBDWA
-            client-secret: 7107088db7a40e5bba28e8d24f9b28cbe69dcf09
 
   profiles:
     active: dev
