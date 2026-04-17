@@ -9,12 +9,12 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-@Value
 @Entity
 @Table(name = "household")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Household {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

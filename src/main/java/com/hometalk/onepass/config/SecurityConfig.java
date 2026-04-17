@@ -1,7 +1,7 @@
 package com.hometalk.onepass.config;
 
 
-import com.hometalk.onepass.auth.service.OauthUserServiceImpl;
+import com.hometalk.onepass.auth.service.Oauth2UserServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,7 +14,7 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private final OauthUserServiceImpl  oauthUserService;
+    private final Oauth2UserServiceImpl oauthUserService;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -34,13 +34,13 @@ public class SecurityConfig {
                         .permitAll()                  // 5. 로그인 페이지는 누구나 접근 가능해야 함
                         .usernameParameter("loginId") // username이 아닌 login_id으로 name 설정
                 )
-/*                .oauth2Login(oauth2 -> oauth2
+                .oauth2Login(oauth2 -> oauth2
                         .loginPage("/auth") // 로그인 페이지를 동일하게 사용
                         .userInfoEndpoint(userInfo -> userInfo
                                 .userService(oauthUserService)
                         )
                         .defaultSuccessUrl("/index", true)
-                )*/
+                )
                 .logout(logout -> logout
                         .logoutSuccessUrl("/auth") // 로그아웃 성공 시 이동할 페이지
                         .permitAll()

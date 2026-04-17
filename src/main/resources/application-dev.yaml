@@ -8,14 +8,25 @@ spring:
     password: hometop402
     driver-class-name: com.mysql.cj.jdbc.Driver
   security:
-    oauth:
+    oauth2: # 1. oauth를 oauth2로 수정
       client:
         registration:
-          Kakao:
+          kakao: # 2. 대소문자 구분을 위해 소문자 권장
             client-id: 4ad79c0bcd4a2a0ab2ac8b3d0fb76b76
             client-secret: k8NJmdYf0NQAD0JShTsmevgS5Q4qzz2s
-
-
+            client-authentication-method: client_secret_post
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/kakao"
+            scope:
+              - profile_nickname
+              - account_email
+            client-name: Kakao
+        provider: # 3. registration과 같은 라인으로 밖으로 빼기
+          kakao:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user-name-attribute: id
 
 
   # SQL 초기화 스크립트 설정
