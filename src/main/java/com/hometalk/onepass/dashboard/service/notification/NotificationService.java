@@ -1,7 +1,13 @@
 package com.hometalk.onepass.dashboard.service.notification;
 
+import com.hometalk.onepass.dashboard.entity.notification.response.NotificationResponseDto;
 import java.util.List;
 
 public interface NotificationService {
-    //List<BookResponseDto> findAllBooks();
+
+    // isRead 필드가 false(읽지 않음)인 데이터만 조회
+    //List<NotificationResponseDto> findByIsReadFalseOrderByCreatedAtDesc();
+
+    // 읽은(True) 데이터 + 최신순 (추가)
+    //List<NotificationResponseDto> findByIsReadTrueOrderByCreatedAtDesc();
 }
