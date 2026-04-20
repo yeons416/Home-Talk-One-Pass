@@ -12,20 +12,23 @@
 
 <body>
 
+<!-- 헤더 -->
+<div th:replace="~{fragments/headerCurrentMenuView :: path(paths=#{'notice'})}"></div>
+
 <div class="main-layout" style="display:flex; min-height:100vh;">
 
+    <!-- 사이드바 -->
     <div th:replace="~{fragments/sidebar :: sidebar(currentPage='notice')}"></div>
 
     <div class="main-wrapper" style="flex:1; display:flex; flex-direction:column;">
 
-        <div th:replace="~{fragments/header_menu :: header_menu(currentPath01='notice', currentPath02='')}"></div>
-        <div th:replace="~{fragments/header-menu/parkingCategoryMenu :: categoryMenu}"></div>
-
         <div class="container">
             <h2>공지 작성</h2>
 
+            <!-- 공지 작성 폼 -->
             <form th:action="@{/notice/write}" method="post" enctype="multipart/form-data" id="noticeForm">
 
+                <!-- 분류 선택 -->
                 <div class="form-group">
                     <label for="badge">분류</label>
                     <select id="badge" name="badge" required>
@@ -37,6 +40,7 @@
                     </select>
                 </div>
 
+                <!-- 제목 입력 -->
                 <div class="form-group">
                     <label for="title">제목</label>
                     <input type="text" id="title" name="title" placeholder="제목을 입력하세요 (최대 100자)" maxlength="100" required>
@@ -44,9 +48,11 @@
                 </div>
 
                 <div class="form-group notice-content-wrap">
+                    <!-- 본문 -->
                     <label>내용</label>
                     <textarea name="content" rows="15" placeholder="내용을 입력하세요" required></textarea>
 
+                    <!-- 일정 등록 모달 -->
                     <div class="schedule-modal" id="scheduleModal">
                         <div class="modal-header">
                             <span>일정 등록</span>
@@ -87,18 +93,23 @@
                 </div>
 
                 <div class="button-group">
+                    <!-- 파일 업로드 -->
                     <div class="button-group-left">
                         <input type="file" id="file" name="file">
                         <label for="file" class="btn btn-file">파일 올리기</label>
                     </div>
                     <div class="button-group-right">
+                        <!-- 상단 고정 -->
                         <div class="checkbox-group">
                             <input type="checkbox" id="isPinned" name="isPinned" value="true">
                             <label for="isPinned">상단 고정</label>
                         </div>
+                        <!-- 일정 등록 모달 -->
                         <button type="button" class="btn-schedule"
                                 onclick="document.getElementById('scheduleModal').classList.add('open')">일정 등록</button>
+                        <!-- 목록으로 돌아가기 -->
                         <a th:href="@{/notice}" class="btn btn-cancel" onclick="return confirmCancel()">목록</a>
+                        <!-- 게시 -->
                         <button type="submit" class="btn-submit">게시</button>
                     </div>
                 </div>
@@ -109,10 +120,12 @@
 </div>
 
 <script>
+    // 제목 글자수 카운트
     document.getElementById('title').addEventListener('input', function() {
         document.getElementById('charCount').innerText = this.value.length;
     });
 
+    // 목록 이동 전 확인 팝업
     function confirmCancel() {
         if (confirm("작성 중인 내용을 중단하고 목록으로 돌아가시겠습니까?")) {
             return true;

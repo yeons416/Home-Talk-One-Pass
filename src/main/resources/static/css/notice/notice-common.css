@@ -1,4 +1,4 @@
-/*:root {
+:root {
     --main-navy: #032154;
     --sub-blue: #3C6ABC;
     --point-coral: #EB6E57;
@@ -28,10 +28,11 @@ body {
     padding: 24px;
     border-radius: 15px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    min-height: calc(100vh - 150px);
 }
 
 .badge-important span {
-    background-color: #d64141;
+    background-color: #e38d8c;
     border-radius: 20px;
     padding: 3px 12px;
     font-size: 11px;
@@ -40,7 +41,7 @@ body {
 }
 
 .badge-facility span {
-    background-color: #25b04a;
+    background-color: #8bd492;
     border-radius: 20px;
     padding: 3px 12px;
     font-size: 11px;
@@ -49,7 +50,7 @@ body {
 }
 
 .badge-safety span {
-    background-color: #f1c40f;
+    background-color: #ecb373;
     border-radius: 20px;
     padding: 3px 12px;
     font-size: 11px;
@@ -58,7 +59,7 @@ body {
 }
 
 .badge-normal span {
-    background-color: #2639b4;
+    background-color: #879ce8;
     border-radius: 20px;
     padding: 3px 12px;
     font-size: 11px;
@@ -202,4 +203,3 @@ body {
     cursor: pointer;
 }
 
-*/

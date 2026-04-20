@@ -12,20 +12,23 @@
 
 <body>
 
+<!-- 헤더 -->
+<div th:replace="~{fragments/headerCurrentMenuView :: path(paths=#{'notice'})}"></div>
+
 <div class="main-layout" style="display:flex; min-height:100vh;">
 
+    <!-- 사이드바 -->
     <div th:replace="~{fragments/sidebar :: sidebar(currentPage='notice')}"></div>
 
     <div class="main-wrapper" style="flex:1; display:flex; flex-direction:column;">
 
-        <div th:replace="~{fragments/header_menu :: header_menu(currentPath01='notice', currentPath02='')}"></div>
-        <div th:replace="~{fragments/header-menu/parkingCategoryMenu :: categoryMenu}"></div>
-
         <div class="container">
             <h2>공지 수정</h2>
 
+            <!-- 공지 수정 폼 -->
             <form th:action="@{/notice/{id}/edit(id=${notice.id})}" method="post" enctype="multipart/form-data">
 
+                <!-- 분류 선택 -->
                 <div class="form-group">
                     <label for="badge">분류</label>
                     <select id="badge" name="badge" required>
@@ -37,6 +40,7 @@
                     </select>
                 </div>
 
+                <!-- 제목 입력 -->
                 <div class="form-group">
                     <label for="title">제목</label>
                     <input type="text" id="title" name="title"
@@ -46,10 +50,12 @@
                 </div>
 
                 <div class="form-group notice-content-wrap">
+                    <!-- 본문 -->
                     <label>내용</label>
                     <textarea name="content" rows="15" required
                               th:text="${notice.content}"></textarea>
 
+                    <!-- 일정 등록 모달 -->
                     <div class="schedule-modal" id="scheduleModal">
                         <div class="modal-header">
                             <span>일정 등록</span>
@@ -90,34 +96,48 @@
                 </div>
 
                 <div class="button-group">
+                    <!-- 파일 업로드  -->
                     <div class="button-group-left">
                         <input type="file" id="file" name="file">
                         <label for="file" class="btn btn-file">파일 올리기</label>
                         <span id="fileName" class="file-name"></span>
                     </div>
                     <div class="button-group-right">
+                        <!-- 상단 고정 -->
                         <div class="checkbox-group">
                             <input type="checkbox" id="isPinned" name="isPinned" value="true"
                                    th:checked="${notice.isPinned}">
                             <label for="isPinned">상단 고정</label>
                         </div>
+                        <!-- 일정 등록 모달 -->
                         <button type="button" class="btn-schedule"
                                 onclick="document.getElementById('scheduleModal').classList.add('open')">일정 등록</button>
+                        <!-- 상세 페이지로 취소 -->
                         <a th:href="@{/notice/{id}(id=${notice.id})}" class="btn btn-cancel">취소</a>
+                        <!-- 수정 완료 -->
                         <button type="submit" class="btn-submit">수정 완료</button>
                     </div>
                 </div>
 
             </form>
+
+            <!-- 삭제 -->
+            <form th:action="@{/notice/{id}/delete(id=${notice.id})}" method="post" style="margin-top:10px;">
+                <button type="button" class="btn-delete"
+                        onclick="if(confirm('삭제하시겠습니까?')) this.form.submit()">삭제</button>
+            </form>
+
         </div>
     </div>
 </div>
 
 <script>
+    // 제목 글자수 카운트
     document.getElementById('title').addEventListener('input', function() {
         document.getElementById('charCount').innerText = this.value.length;
     });
 
+    // 파일명 표시
     document.getElementById('file').addEventListener('change', function() {
         document.getElementById('fileName').innerText = this.files[0]?.name || '';
     });

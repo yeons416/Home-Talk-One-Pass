@@ -13,17 +13,19 @@
 
 <body>
 
+<!-- 헤더 -->
+<div th:replace="~{fragments/headerCurrentMenuView :: path(paths=#{'notice'})}"></div>
+
 <div class="main-layout" style="display:flex; min-height:100vh;">
 
+    <!-- 사이드바 -->
     <div th:replace="~{fragments/sidebar :: sidebar(currentPage='notice')}"></div>
 
     <div class="main-wrapper" style="flex:1; display:flex; flex-direction:column;">
 
-        <div th:replace="~{fragments/header_menu :: header_menu(currentPath01='notice', currentPath02='')}"></div>
-        <div th:replace="~{fragments/header-menu/parkingCategoryMenu :: categoryMenu}"></div>
-
         <div class="container">
 
+            <!-- 공지 정보 -->
             <table class="notice-table">
                 <tr>
                     <td th:class="'badge-' + ${notice.badge != null ? notice.badge.name().toLowerCase() : 'normal'}">
@@ -31,28 +33,30 @@
                     </td>
                     <td th:text="${notice.title}">공지 제목</td>
                     <td th:text="${#temporals.format(notice.createdAt, 'yyyy-MM-dd HH:mm')}">작성일시</td>
+                    <!-- 수정일시 -->
                     <td th:text="${notice.updatedAt != null ? #temporals.format(notice.updatedAt, 'yyyy-MM-dd HH:mm') : '-'}">수정일시</td>
                     <td th:text="${notice.viewCount}">조회수</td>
                 </tr>
             </table>
 
+            <!-- 본문 -->
             <div class="notice-box">
                 <p th:text="${notice.content}" style="white-space: pre-line;"></p>
             </div>
 
+            <!-- 첨부파일: 없으면 미표시 -->
             <div class="attachment-box" th:if="${attachments != null && !attachments.isEmpty()}">
                 <div class="attachment-title">📎 첨부파일</div>
                 <div th:each="attachment : ${attachments}">
+                    <!-- 파일 다운로드 링크 -->
                     <a th:href="@{/notice/download/{id}(id=${attachment.id})}"
                        th:text="${attachment.fileName}"
                        class="attachment-link"></a>
                     <br>
-                    <img th:if="${attachment.fileName.contains('.jpg') or attachment.fileName.contains('.jpeg') or attachment.fileName.contains('.png')}"
-                         th:src="@{/uploads/{fileName}(fileName=${attachment.fileName})}"
-                         style="max-width: 100%; margin-top: 8px; border-radius: 8px;">
                 </div>
             </div>
 
+            <!-- 이전글 / 다음글 네비게이션 -->
             <table class="notice-nav-table">
                 <tr>
                     <td>이전글</td>
@@ -81,9 +85,13 @@
             </table>
 
             <div class="admin-buttons">
+                <!-- 목록으로 뒤로가기 -->
                 <a th:href="@{/notice}" class="btn-back">← 뒤로가기</a>
+                <!-- 수정/삭제 버튼: ADMIN만 노출 -->
                 <div sec:authorize="hasRole('ADMIN')" style="display:flex; gap:8px;">
+                    <!-- 수정 -->
                     <a th:href="@{/notice/{id}/edit(id=${notice.id})}" class="btn-edit">수정</a>
+                    <!-- 삭제  -->
                     <form th:action="@{/notice/{id}/delete(id=${notice.id})}" method="post" style="display:inline;">
                         <button type="button" class="btn-delete"
                                 onclick="if(confirm('삭제하시겠습니까?')) this.form.submit()">삭제</button>
