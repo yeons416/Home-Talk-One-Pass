@@ -8,13 +8,17 @@ import com.hometalk.onepass.community.service.BoardService;
 import com.hometalk.onepass.community.service.CategoryService;
 import com.hometalk.onepass.community.service.CommentService;
 import com.hometalk.onepass.community.service.PostService;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.apache.poi.util.StringUtil;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Controller
@@ -31,11 +35,13 @@ public class PostController {
     @GetMapping("/{boardCode}")
     public String boardMain(@PathVariable String boardCode,
                             @RequestParam(defaultValue = "1") int page,
+                            @RequestParam(required = false) String searchType,
+                            @RequestParam(required = false) String keyword,
                             Model model) {
         BoardResponseDTO board = boardService.findByCode(boardCode);
         // 사용자의 첫 페이지(1)은 JPA에서 0으로 처리하므로 1씩 빼줘야 함
         int pageIndex = (page < 1) ? 0 : page - 1;
-        return fillCommunityModel(board, null, pageIndex, model);
+        return fillCommunityModel(board, null, pageIndex, searchType, keyword,  model);
     }
 
     // 카테고리별 목록
@@ -43,47 +49,38 @@ public class PostController {
     public String categoryList(@PathVariable String boardCode,
                                @PathVariable String categoryCode,
                                @RequestParam(defaultValue = "1") int page,
+                               @RequestParam(required = false) String searchType,
+                               @RequestParam(required = false) String keyword,
                                Model model) {
         BoardResponseDTO board = boardService.findByCode(boardCode);
         CategoryResponseDTO category = "all".equals(categoryCode) ? null
                                         : categoryService.findByCode(categoryCode);
         int pageIndex = (page < 1) ? 0 : page - 1;
 
-        return fillCommunityModel(board, category, pageIndex, model);
+        return fillCommunityModel(board, category, pageIndex, searchType, keyword, model);
     }
 
     // 게시글 상세 페이지
-/*  CustomUserDetails 같은 스프링 시큐리티 구현 후 주석 해제
-    @GetMapping("/{boardCode}/{id:[0-9]+}")
-    public String postDetail(@PathVariable String boardCode, @PathVariable Long id,
-                             @AuthenticationPrincipal CustomUserDetails userDetails, // 추가
-                             Model model) {
-
-        // 로그인 안 한 경우도 고려하여 DTO 구성 (userDetails가 null일 수 있음)
-        PostUserRsDTO currentUser = (userDetails != null) ?
-                new PostUserRsDTO(userDetails.getUser()) : null;
-
-        // 서비스에 currentUser 전달
-        PostResponseDTO post = postService.postDetail(id, currentUser);
-        model.addAttribute("post", post);
-
-        BoardResponseDTO board = boardService.findByCode(boardCode);
-        addLayoutAttributes(board, null, model, false);
-        return "community/postDetail";
-    }
- */
     @GetMapping("/{boardCode}/{categoryCode:[a-zA-Z]+}/{id:[0-9]+}")
     public String postDetail(@PathVariable String boardCode,
                              @PathVariable String categoryCode,
-                             @PathVariable Long id, Model model) {
+                             @PathVariable Long id,
+                             HttpSession session,
+                             Model model) {
         // [임시] 아직 로그인 연동 전이므로 테스트용 유저 정보 직접 생성
         PostUserRsDTO tempUser = PostUserRsDTO.builder()
                 .id(1L)           // 테스트하고 싶은 유저 ID
                 .role("MEMBER")   // 또는 "ADMIN"
                 .build();
 
+        List<Long> viewedPosts = (List<Long>) session.getAttribute("viewedPosts");
+        if (viewedPosts == null) {
+            viewedPosts = new ArrayList<>();
+            session.setAttribute("viewedPosts", viewedPosts);
+        }
+
         // 1. 게시글 데이터 가져오기 (tempUser를 넘겨서 editable, admin 여부를 계산함)
-        PostResponseDTO post = postService.postDetail(id, tempUser, boardCode);
+        PostResponseDTO post = postService.postDetail(id, tempUser, boardCode, viewedPosts);
         model.addAttribute("post", post);
 
         // 2. 카테고리 배너 활성
@@ -146,15 +143,6 @@ public class PostController {
     }
 
     // 게시글 등록
-/*  CustomUserDetails 같은 스프링 시큐리티 구현 후 주석 해제
-    @PostMapping("/{boardCode}/save")
-    public String createPost(@PathVariable String boardCode, @ModelAttribute PostRequestDTO dto,
-                             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long userId = userDetails.getUserId();
-        Long id = postService.postSave(boardCode, dto, userId);
-        return "redirect:/community/" + boardCode + "/" + id;
-    }
- */
     @PostMapping("/{boardCode}/save")
     public String createPost(@PathVariable String boardCode, @ModelAttribute PostRequestDTO dto,
                              @RequestParam(name = "isTemp", defaultValue = "false") boolean isTemp,
@@ -181,16 +169,6 @@ public class PostController {
     }
 
     // 게시글 수정
-/*  CustomUserDetails 같은 스프링 시큐리티 구현 후 주석 해제
-    @PostMapping("/{boardCode}/edit/{id}")      // 폼 태그의 action 주소
-    public String updatePost(@PathVariable String boardCode, @PathVariable Long id,
-                             PostRequestDTO dto,
-                             @AuthenticationPrincipal CustomUserDetails userDetails) {
-
-        postService.postUpdate(id, dto, userDetails.getUserId());
-        return "redirect:/community/" + boardCode + "/" + id;
-    }
- */
     @PostMapping("/{boardCode}/edit/{id}")
     public String updatePost(@PathVariable String boardCode, @PathVariable Long id, PostRequestDTO dto,
                              RedirectAttributes redirectAttributes) {
@@ -203,15 +181,6 @@ public class PostController {
     }
 
     // 게시글 삭제
-/*  CustomUserDetails 같은 스프링 시큐리티 구현 후 주석 해제
-    @PostMapping("/{boardCode}/delete/{id}")
-    public String deletePost(@PathVariable String boardCode, @PathVariable Long id,
-                             @AuthenticationPrincipal CustomUserDetails userDetails) {
-
-        postService.deletePost(id, userDetails.getUserId());
-        return "redirect:/community/" + boardCode;
-    }
-*/
     @PostMapping("/{boardCode}/delete/{id}")
     public String deletePost(@PathVariable String boardCode, @PathVariable Long id,
                              RedirectAttributes redirectAttributes) {
@@ -253,10 +222,14 @@ public class PostController {
     }
 
     // 공통 method - 배너 가져올 페이지/기능들에 모두 쓰임
-    private String fillCommunityModel(BoardResponseDTO board, CategoryResponseDTO category, int page, Model model) {
-        if (board == null) {
-            return "redirect:/community";    // 게시판 정보 없으면 메인 페이지
-        }
+    private String fillCommunityModel(BoardResponseDTO board,
+                                      CategoryResponseDTO category,
+                                      int page,
+                                      String searchType,
+                                      String keyword,
+                                      Model model) {
+        if (board == null) return "redirect:/community";    // 게시판 정보 없으면 메인 페이지
+
         if (category == null) {
             model.addAttribute("categoryCode", "all");
             model.addAttribute("categoryId", null);
@@ -268,14 +241,22 @@ public class PostController {
         // 공통 레이아웃 데이터 채우기
         addLayoutAttributes(board, category, model, false);
 
+        if (StringUtils.hasText(keyword) && !StringUtils.hasText(searchType)) {
+            model.addAttribute("searchError", "검색 유형을 선택해주세요.");
+        }
         // 목록 페이지 전용 데이터 채우기
-        Page<PostListResponse> postsPage = postService.postList(board.getId(),
+        Page<PostListResponse> postsPage = postService.searchPosts(board.getId(),
                                            (category != null ? category.getId() : null),
+                                           searchType, keyword,
                                            page);
 
         model.addAttribute("posts", postsPage.getContent());    // List<PostListReponse>
         model.addAttribute("page", postsPage);                  // 현재 페이지, 총 페이지 등
-        model.addAttribute("currentPage", page + 1);                // 현재 페이지 번호
+        model.addAttribute("currentPage", page + 1);  // 현재 페이지 번호
+
+        // 검색 조건
+        model.addAttribute("searchType", searchType);
+        model.addAttribute("keyword", keyword);
         return "community/postList";
     }
 }

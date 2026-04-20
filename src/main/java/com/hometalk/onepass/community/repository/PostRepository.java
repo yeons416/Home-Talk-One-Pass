@@ -1,5 +1,6 @@
 package com.hometalk.onepass.community.repository;
 
+import com.hometalk.onepass.community.entity.Board;
 import com.hometalk.onepass.community.entity.Post;
 import com.hometalk.onepass.community.enums.PostStatus;
 import org.springframework.data.domain.Page;
@@ -42,4 +43,33 @@ public interface PostRepository extends JpaRepository<Post, Long> {
                                  @Param("catId") Long catId,
                                  @Param("status") PostStatus status,
                                  Pageable pageable);
+
+    // 검색
+    // 제목
+    @Query("SELECT p FROM Post p WHERE p.board = :board " +
+            "AND p.postStatus = :status " +
+            "AND p.title LIKE %:keyword%")
+    Page<Post> findByTitle(@Param("board") Board board,
+                           @Param("keyword") String keyword,
+                           @Param("status") PostStatus status,
+                           Pageable pageable);
+
+    // 닉네임
+    @Query("SELECT p FROM Post p WHERE p.board = :board " +
+            "AND p.postStatus = :status " +
+            "AND p.writer.nickname LIKE %:keyword%")
+    Page<Post> findByNickname(@Param("board") Board board,
+                            @Param("keyword") String keyword,
+                            @Param("status") PostStatus status,
+                            Pageable pageable);
+
+    // 제목 + 내용
+    @Query("SELECT p FROM Post p WHERE p.board = :board " +
+            "AND p.postStatus = :status " +
+            "AND (p.title LIKE %:keyword% OR p.content LIKE %:keyword%)")
+    Page<Post> findByTitleOrContent(@Param("board") Board board,
+                                    @Param("keyword") String keyword,
+                                    @Param("status") PostStatus status,
+                                    Pageable pageable);
+
 }

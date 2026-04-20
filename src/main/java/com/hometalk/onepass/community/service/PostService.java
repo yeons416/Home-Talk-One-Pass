@@ -23,6 +23,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -33,6 +34,7 @@ import java.util.stream.Collectors;
 public class PostService {
     private final UserRepository userRepository;
     private final PostRepository postRepository;
+    private final PostActionService postActionService;
     private final PostValidator postValidator;
     private final CategoryRepository categoryRepository;
     private final BoardRepository boardRepository;
@@ -57,30 +59,42 @@ public class PostService {
     }
 
     // Read
-    public Page<PostListResponse> postList(Long boardId, Long categoryId, int page) {
-        System.out.println("조회 요청 - boardId: " + boardId + ", page: " + page + ", status: " + PostStatus.ACTIVE);
-        // 1. 상태값 설정
+    public Page<PostListResponse> searchPosts(Long boardId, Long categoryId, String searchType, String keyword, int page) {
         PostStatus status = PostStatus.ACTIVE;
-
-        // 2. 페이징 정보 설정 (페이지 번호, 한 페이지당 개수, 정렬)
-        // 현재 Controller에서 defaultValue="0"으로 넘기고 있으므로 그대로 page 사용
         Pageable pageable = PageRequest.of(page, 10, Sort.by(Sort.Direction.DESC, "id"));
 
-        Page<Post> posts;
-        if (categoryId == null) {
-            // boardId와 status로 조회 (OrderByIdDesc는 쿼리에 넣거나 리포지토리 메서드명에 추가)
-            posts = postRepository.findActivePosts(boardId, status, pageable);
-        } else {
-            posts = postRepository.findCategoryPosts(boardId, categoryId, status, pageable);
+        // 1. 보드 엔티티 조회 (검색 메서드 파라미터가 Board 객체이므로 필요)
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시판입니다."));
+
+        // 2. 검색어나 검색 타입이 없으면 일반 목록 조회
+        if (keyword == null || keyword.isBlank()) {
+            return getNormalList(boardId, categoryId, status, pageable).map(PostListResponse::new);
         }
 
-        // Page라 Stream -> DTO -> List 재변환 필요 없이 map 기능을 제공하여 곧바로 사용 가능
+        Page<Post> posts;
+        // 2. 검색어 존재 여부에 따른 분기 처리
+        posts = switch (searchType) {
+            case "title" -> postRepository.findByTitle(board, keyword, status, pageable);
+            case "nickname" -> postRepository.findByNickname(board, keyword, status, pageable);
+            case "tc" -> postRepository.findByTitleOrContent(board, keyword, status, pageable);
+            default -> getNormalList(boardId, categoryId, status, pageable);
+        };
         return posts.map(PostListResponse::new);
+    }
+    // 중복 코드를 방지하기 위한 내부 헬퍼 메서드
+    private Page<Post> getNormalList(Long boardId, Long categoryId, PostStatus status, Pageable pageable) {
+        if (categoryId == null) {
+            return postRepository.findActivePosts(boardId, PostStatus.ACTIVE, pageable);
+        }
+        return postRepository.findCategoryPosts(boardId, categoryId, PostStatus.ACTIVE, pageable);
     }
 
     // Read - 상세 페이지
-    public PostResponseDTO postDetail(Long postId, PostUserRsDTO currentUser, String boardCode) {
+    public PostResponseDTO postDetail(Long postId, PostUserRsDTO currentUser, String boardCode, List<Long> viewedPosts) {
         Post post = postRepository.findById(postId).orElseThrow(() -> new PostNotFoundException(postId, boardCode));
+        Long currentUserId = (currentUser != null) ? currentUser.getId() : null;
+        postActionService.increaseViewCount(postId, currentUserId, viewedPosts);
         PostResponseDTO dto = new PostResponseDTO(post);
         postValidator.setAuthority(dto, post, currentUser);
         return dto;

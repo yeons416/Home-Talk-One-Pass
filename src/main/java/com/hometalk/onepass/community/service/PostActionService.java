@@ -9,6 +9,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class PostActionService {
@@ -50,5 +52,27 @@ public class PostActionService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글 없음"));
         post.updateStatus(PostStatus.HIDDEN);
+    }
+
+    // 조회수 증가
+    @Transactional
+    public void increaseViewCount(Long postId, Long currentUserId, List<Long> viewedPosts) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("게시글이 없습니다."));
+
+        // 1. 본인 글 제외 로직
+        // 작성자가 로그인 유저와 같다면 조회수를 올리지 않고 즉시 종료
+        if (currentUserId != null && post.getWriter().getId().equals(currentUserId)) return;
+
+        // 2. 중복 조회 방지
+        if (viewedPosts != null && viewedPosts.contains(postId)) return;
+
+        // 3. 위 조건들을 통과하면 조회수 증가
+        post.addViewCount();
+
+        // 4. 읽은 목록에 추가 (이건 컨트롤러/서비스 단에서 세션에 담아줘야 함)
+        if (viewedPosts != null) {
+            viewedPosts.add(postId);
+        }
     }
 }
