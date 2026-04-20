@@ -116,3 +116,31 @@ ul, li {
     padding: 0;
     margin: 0;
 }
+
+/* ==========================================
+   UI Components - Category Badges
+   ========================================== */
+.list-category {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    display: inline-block;
+    text-align: center;
+}
+
+/* 카테고리 공통 스타일 */
+.list-category {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    display: inline-block;
+}
+
+/* 카테고리별 개별 색상 */
+.list-category.free { background-color: #E6F7FF; color: #1890FF; }
+.list-category.debate { background-color: #F3E5F5; color: #7B1FA2; }
+.list-category.share { background-color: #FFF7E6; color: #FA8C16; }
+.list-category.lost { background-color: #FFE5E5; color: #FF4D4F; }
+.list-category.survey { background-color: #F6FFED; color: #52C41A; }

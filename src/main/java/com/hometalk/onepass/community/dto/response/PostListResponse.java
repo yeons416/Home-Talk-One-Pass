@@ -16,6 +16,7 @@ public class PostListResponse {
     private boolean pinned;
     private String boardName;
     private String categoryName;
+    private String categoryCode;
     private String writer;
     private LocalDateTime createdAt;
     private int viewCount;
@@ -27,9 +28,14 @@ public class PostListResponse {
         this.pinned = post.isPinned();
         this.boardName = post.getCategory().getBoard().getName();
         this.categoryName = post.getCategory().getName();
+        this.categoryCode = post.getCategory().getCode();
         this.writer = post.getWriter().getNickname();
         this.createdAt = post.getCreatedAt();
         this.viewCount = post.getViewCount();
-        this.commentCount = post.getCommentCount();
+        this.commentCount = post.getComments().size();
+    }
+
+    public String getCategoryCode() {
+        return categoryCode;
     }
 }

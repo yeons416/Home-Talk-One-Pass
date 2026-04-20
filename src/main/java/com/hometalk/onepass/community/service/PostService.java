@@ -61,7 +61,12 @@ public class PostService {
     // Read
     public Page<PostListResponse> searchPosts(Long boardId, Long categoryId, String searchType, String keyword, int page) {
         PostStatus status = PostStatus.ACTIVE;
-        Pageable pageable = PageRequest.of(page, 10, Sort.by(Sort.Direction.DESC, "id"));
+        Pageable pageable = PageRequest.of(page, 10,
+                Sort.by(
+                        Sort.Order.desc("pinned"), // 고정글이 1순위
+                        Sort.Order.desc("id")      // 그 안에서 최신순이 2순위
+                )
+        );
 
         // 1. 보드 엔티티 조회 (검색 메서드 파라미터가 Board 객체이므로 필요)
         Board board = boardRepository.findById(boardId)
@@ -91,6 +96,7 @@ public class PostService {
     }
 
     // Read - 상세 페이지
+    @Transactional
     public PostResponseDTO postDetail(Long postId, PostUserRsDTO currentUser, String boardCode, List<Long> viewedPosts) {
         Post post = postRepository.findById(postId).orElseThrow(() -> new PostNotFoundException(postId, boardCode));
         Long currentUserId = (currentUser != null) ? currentUser.getId() : null;

@@ -67,7 +67,7 @@
 
                 <li class="page-item" th:classappend="${!page.hasPrevious()} ? 'disabled'">
                     <a class="page-link"
-                       th:href="@{/community/{boardCode}/{categoryCode}(boardCode=${boardCode}, categoryCode=${categoryCode}, page=${page.number})}"
+                       th:href="@{/community/{boardCode}/{categoryCode}(boardCode=${boardCode}, categoryCode=${categoryCode}, page=${page.number})} : '#'"
                        aria-label="Previous">
                         <span aria-hidden="true">&laquo;</span>
                     </a>
@@ -83,7 +83,7 @@
 
                 <li class="page-item" th:classappend="${!page.hasNext()} ? 'disabled'">
                     <a class="page-link"
-                       th:href="@{/community/{boardCode}/{categoryCode}(boardCode=${boardCode}, categoryCode=${categoryCode}, page=${page.number + 2})}"
+                       th:href="@{/community/{boardCode}/{categoryCode}(boardCode=${boardCode}, categoryCode=${categoryCode}, page=${page.number + 2})} : '#'"
                        aria-label="Next">
                         <span aria-hidden="true">&raquo;</span>
                     </a>
