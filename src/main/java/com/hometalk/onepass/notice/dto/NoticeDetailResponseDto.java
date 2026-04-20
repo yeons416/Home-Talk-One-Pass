@@ -25,8 +25,6 @@ public class NoticeDetailResponseDto {
 
     private Boolean isPinned;
 
-    private Boolean isPinned;
-
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
