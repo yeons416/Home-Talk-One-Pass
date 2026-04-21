@@ -4,110 +4,54 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HomeTOP Community</title>
-    <link rel="stylesheet" th:href="@{/css/dashboard/style.css}">
     <link rel="stylesheet" th:href="@{/css/community/common.css}">
     <link rel="stylesheet" href="/css/community/poststyle.css" th:href="@{/css/community/post-list.css}">
 </head>
 <body>
-    <div class="main-layout" style="display: flex; min-height: 100vh;">
+    <div th:replace="~{community/fragments/boardListHeader :: boardListHeader(boards=${boards}, boardId=${boardId})}"></div>
+    <div th:replace="~{community/fragments/categoryBanner :: categoryBanner(board=${board}, categories=${categories}, categoryId=${categoryId})}"></div>
+    <p>태그(tags)</p>
+<div class="content-container">
+    <div class="page-body">
+        <table class="post-table">
+            <thead>
+                <tr>
+                    <th>카테고리</th>
+                    <th>제목</th>
+                    <th>댓글수</th>
+                    <th>작성자</th>
+                    <th>조회수</th>
+                    <th>작성일</th>
+                </tr>
+            </thead>
+            <tbody th:if="${not #lists.isEmpty(posts)}">
+                <tr th:each="post : ${posts}">
+                    <td><span th:text="${post.categoryName}" class="list-category">카테고리</span></td>
+                    <td class="title-cell">
+                        <a th:href="@{/community/{bCode}/{cCode}/{id}(bCode=${board.code}, cCode=${categoryCode}, id=${post.id})}"
+                           th:text="${post.title}"></a>
+                    </td>
+                    <td th:text="${post.commentCount}" class="comment-count"></td>
+                    <td th:text="${post.writer}">작성자</td>
+                    <td th:text="${post.viewCount}"></td>
+                    <td th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd')}" class="date-cell"></td>
+                </tr>
+            </tbody>
+        </table>
 
-        <!-- 1. 왼쪽 사이드바 -->
-        <div th:replace="~{fragments/sidebar :: sidebar(currentPage='community')}"></div>
-
-        <!-- 2. 오른쪽 영역 (헤더 + 본문) -->
-        <div class="main-wrapper" style="flex: 1; display: flex; flex-direction: column;">
-
-
-<!--            <a th:text="${boardId}">광장 = 1, 마켓 = 2</a>-->
-<!--            <a th:each="board : ${boards}" th:text="${board.name}">String = 광장, 마켓 </a>-->
-<!--            <a th:each="category : ${categories}" th:text="${category.name}">전체, 자유, 토론 </a>-->
-<!--            <a th:text="${categoryId}">전체, 자유, 토론 </a>-->
-<!--            <p>현재 경로는 <span th:text="${boards[0].name}">현재 경로</span>입니다.</p>-->
-
-            <!-- 상단 헤더 -->
-            <th:block th:each="board : ${boards}">
-                <div th:if="${boardId == board.id}">
-
-                    <div th:switch="${categoryId}">
-
-                        <div th:case="2">
-                            <div th:replace="~{fragments/headerCurrentMenuView :: path(paths=${ {'community', board.name, '자유' } })}"></div>
-                        </div>
-                        <div th:case="3">
-                            <div th:replace="~{fragments/headerCurrentMenuView :: path(paths=${ {'community', board.name, '토론' } })}"></div>
-                        </div>
-                        <div th:case="4">
-                            <div th:replace="~{fragments/headerCurrentMenuView :: path(paths=${ {'community', board.name, '나눔' } })}"></div>
-                        </div>
-                        <div th:case="5">
-                            <div th:replace="~{fragments/headerCurrentMenuView :: path(paths=${ {'community', board.name, '분실문' } })}"></div>
-                        </div>
-                        <div th:case="*" >
-                            <div th:replace="~{fragments/headerCurrentMenuView :: path(paths=${ {'community', board.name, '전체' } })}"></div>
-                        </div>
-
-                    </div>
-
-                </div>
-            </th:block>
-
-            <!-- 상단 메뉴 -->
-            <div th:replace="~{fragments/headerCategoryMenu :: community}"></div>
-
-            <!-- 메인 콘텐츠 -->
-            <main class="content" style="flex: 1;">
-                <div th:replace="~{community/fragments/boardListHeader :: boardListHeader(boards=${boards}, boardId=${boardId})}"></div>
-                <div th:replace="~{community/fragments/categoryBanner :: categoryBanner(board=${board}, categories=${categories}, categoryId=${categoryId})}"></div>
-                <p>태그(tags)</p>
-                <div class="content-container">
-                    <div class="page-body">
-                        <table class="post-table">
-                            <thead>
-                            <tr>
-                                <th>카테고리</th>
-                                <th>제목</th>
-                                <th>댓글수</th>
-                                <th>작성자</th>
-                                <th>조회수</th>
-                                <th>작성일</th>
-                            </tr>
-                            </thead>
-                            <tbody th:if="${not #lists.isEmpty(posts)}">
-                            <tr th:each="post : ${posts}">
-                                <td><span th:text="${post.categoryName}" class="list-category">카테고리</span></td>
-                                <td class="title-cell">
-                                    <a th:href="@{/community/{bCode}/{cCode}/{id}(bCode=${board.code}, cCode=${categoryCode}, id=${post.id})}"
-                                       th:text="${post.title}"></a>
-                                </td>
-                                <td th:text="${post.commentCount}" class="comment-count"></td>
-                                <td th:text="${post.writer}">작성자</td>
-                                <td th:text="${post.viewCount}"></td>
-                                <td th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd')}" class="date-cell"></td>
-                            </tr>
-                            </tbody>
-                        </table>
-
-                        <div th:if="${#lists.isEmpty(posts)}" class="no-data">
-                            <p>게시글이 없습니다.<br>새 게시글을 작성해보세요!</p>
-                        </div>
-                    </div>
-
-                    <div class="page-footer">
-                        <div class="pagination-wrapper">
-                            <div th:replace="~{community/fragments/postpaging :: pagination(page=${page}, boardCode=${boardCode}, categoryCode=${categoryCode})}"></div>
-                        </div>
-                        <div class="action-wrapper">
-                            <a th:href="@{/community/{code}/write(code=${board.code})}" class="btn add-post-btn">글 작성</a>
-                        </div>
-                    </div>
-                </div>
-            </main>
-
-            <!-- 하단 푸터 삽입 -->
-            <footer th:replace="~{fragments/footer :: footer}"></footer>
-
+        <div th:if="${#lists.isEmpty(posts)}" class="no-data">
+            <p>게시글이 없습니다.<br>새 게시글을 작성해보세요!</p>
         </div>
     </div>
 
+    <div class="page-footer">
+        <div class="pagination-wrapper">
+            <div th:replace="~{community/fragments/postpaging :: pagination(page=${page}, boardCode=${boardCode}, categoryCode=${categoryCode})}"></div>
+        </div>
+        <div class="action-wrapper">
+            <a th:href="@{/community/{code}/write(code=${board.code})}" class="btn add-post-btn">글 작성</a>
+        </div>
+    </div>
+</div>
 </body>
 </html>
