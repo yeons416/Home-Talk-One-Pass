@@ -17,4 +17,9 @@ public class StaffViewController {
     public String manualEntryPage() {
         return "parking/staff-manual-entry";
     }
+
+    @GetMapping("/exit")
+    public String exitPage() {
+        return "parking/staff-exit";
+    }
 }

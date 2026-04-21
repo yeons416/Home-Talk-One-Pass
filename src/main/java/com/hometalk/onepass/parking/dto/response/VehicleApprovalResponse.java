@@ -2,6 +2,7 @@ package com.hometalk.onepass.parking.dto.response;
 
 import com.hometalk.onepass.parking.entity.VehicleApproval;
 import lombok.Getter;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 
 @Getter
@@ -23,7 +24,9 @@ public class VehicleApprovalResponse {
         this.userName = approval.getVehicle().getUser().getName();
         this.household = approval.getVehicle().getHousehold().getDong() + " "
                 + approval.getVehicle().getHousehold().getHo();
-        this.documentPath = approval.getDocumentPath();
+        this.documentPath = approval.getDocumentPath() != null
+                ? "/uploads/" + Paths.get(approval.getDocumentPath()).getFileName().toString()
+                : null;
         this.status = approval.getStatus().name();
         this.rejectReason = approval.getRejectReason();
         this.processedAt = approval.getProcessedAt();
