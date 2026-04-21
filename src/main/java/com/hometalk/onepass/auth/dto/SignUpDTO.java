@@ -23,12 +23,8 @@ public class SignUpDTO {
     private String password; // HTML의 name="password"와 일치
 
     // 주소 관련 엔티티
-    @NotNull
     private String buildingName;
-    @NotNull
     private String dong;
-    @NotNull
     private String ho;
-    @NotNull
     private String postNum;
 }

@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface BillingRepository extends JpaRepository<Billing, Long> {
@@ -34,6 +35,9 @@ public interface BillingRepository extends JpaRepository<Billing, Long> {
             @Param("status")      BillingStatus status,
             Pageable pageable
     );
+
+    // 해당 월 데이터 (전체 세대) 삭제
+    List<Billing> findAllByBillingMonth(String billingMonth);
 
     // 이번 달 청구서 단건
     Optional<Billing> findByHousehold_IdAndBillingMonth(Long householdId, String billingMonth);

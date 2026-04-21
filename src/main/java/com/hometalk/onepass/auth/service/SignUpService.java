@@ -26,7 +26,7 @@ public class SignUpService {
 
     // 회원 가입 서비스
     @Transactional
-    public void signUp(@Valid SignUpDTO dto) {
+    public void signUp(SignUpDTO dto) {
         // 1. Household (세대 정보) 생성 및 저장
         // 세대 정보는 여러 유저가 공유할 수 있으나, 가입 시점에 생성하는 로직으로 작성합니다.
         Household household = Household.builder()

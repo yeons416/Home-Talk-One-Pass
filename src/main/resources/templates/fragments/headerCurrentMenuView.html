@@ -22,11 +22,12 @@
                 알림⏰
                 <!-- 새 메시지가 있을 때만 빨간 점 표시 (서버에서 newAlert 변수를 보내준다고 가정) -->
                 <span
-                      style="position: absolute; top: -5px; right: 50px; width: 12px; height: 12px; background-color: red; border-radius: 50%; border: 1px solid white;">
+                        style="position: absolute; top: -5px; right: 50px; width: 12px; height: 12px; background-color: red; border-radius: 50%; border: 1px solid white;">
                 </span>
             </a>
             <a href="#" th:href="@{/auth}">로그인</a>
             <a href="#" th:href="@{/myPage}">마이페이지</a>
+
         </nav>
     </div>
 
@@ -51,6 +52,7 @@
                         <span th:case="'parking'">주차</span>
                         <span th:case="'billing'">관리비</span>
                         <span th:case="'notice'">일정관리</span>
+                        <span th:case="'community'">커뮤니티</span>
                     </span>
                 </th:block>
 
@@ -64,8 +66,17 @@
                              <!-- 주차 목록 -->
                             <span th:case="'status'">조회</span>
                             <span th:case="'register'">등록</span>
-                            <span th:case="'reservationRegister'">예약 등록</span>
-                            <span th:case="'reservationRegisterForm'">예약 추가</span>
+                            <span th:case="'reservationRegister'">예약 조회</span>
+                            <span th:case="'reservationRegisterForm'">예약 등록</span>
+
+                            <!-- 커뮤니티 -->
+                            <span th:case="'광장'">광장</span>
+                            <span th:case="'마켓'">마켓</span>
+                            <span th:case="'전체'">전체</span>
+                            <span th:case="'자유'">자유</span>
+                            <span th:case="'토론'">토론</span>
+                            <span th:case="'나눔'">나눔</span>
+                            <span th:case="'분실문'">분실문</span>
 
                         </span>
                     </th:block>

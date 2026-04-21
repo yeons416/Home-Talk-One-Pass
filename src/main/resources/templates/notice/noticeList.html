@@ -13,11 +13,13 @@
 
 <body>
 
-<div class="main-layout" style="display:flex; min-height:100vh;">
+<div class="main-layout" style="display: flex; min-height: 100vh;">
 
+    <!-- 1. 왼쪽 사이드바 -->
     <div th:replace="~{fragments/sidebar :: sidebar(currentPage='notice')}"></div>
 
-    <div class="main-wrapper" style="flex:1; display:flex; flex-direction:column;">
+    <!-- 2. 오른쪽 영역 (헤더 + 본문) -->
+    <div class="main-wrapper" style="flex: 1; display: flex; flex-direction: column;">
 
         <div th:replace="~{fragments/headerCurrentMenuView :: path(paths=#{'notice'})}"></div>
 
@@ -92,6 +94,10 @@
                     <button type="submit" class="btn-search">🔍</button>
                 </form>
             </div>
+        </main>
+
+        <!-- 하단 푸터 삽입 -->
+        <footer th:replace="~{fragments/footer :: footer}"></footer>
 
         </div>
 
