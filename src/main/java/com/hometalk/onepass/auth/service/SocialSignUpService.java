@@ -13,13 +13,13 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-class SocialSignUpService {
+public class SocialSignUpService {
 
     private final HouseholdRepository householdRepository;
     private final UserRepository userRepository;
     private final SocialAccountRepository socialAccountRepository;
 
-    public void registerSocialMember(SocialSignUpDTO dto) {
+    public void socialSignUp(SocialSignUpDTO dto) {
 
         // 1. Household (세대 정보) 생성 및 저장
         Household household = Household.builder()

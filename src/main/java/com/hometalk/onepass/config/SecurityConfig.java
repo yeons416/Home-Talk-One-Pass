@@ -39,18 +39,19 @@ public class SecurityConfig {
                 )
                 .oauth2Login(oauth2 -> oauth2
                         .loginPage("/auth") // 로그인 페이지를 동일하게 사용
+                        .successHandler(oAuth2LoginSuccessHandler) // 핸들러 등록
                         .userInfoEndpoint(userInfo -> userInfo
                                 .userService(oauthUserService)
                         )
-                        .successHandler(oAuth2LoginSuccessHandler) // 핸들러 등록
                         .userInfoEndpoint(userInfo -> userInfo.userService(oauthUserService))
-                        .defaultSuccessUrl("/index", true)
                 )
                 .logout(logout -> logout
                         .logoutUrl("/auth/logout")
                         .logoutSuccessUrl("/auth") // 로그아웃 성공 시 이동할 페이지
-                        .invalidateHttpSession(true) // 세션 무효화
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID")
                 );
+
 
         return http.build();
 

@@ -4,12 +4,18 @@
     <meta charset="UTF-8">
     <title>추가 정보 입력 - Home Talk</title>
     <style>
-        .auth-container { max-width: 400px; margin: 50px auto; font-family: sans-serif; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input[readonly] { background-color: #eee; cursor: not-allowed; }
-        input { width: 100%; padding: 8px; box-sizing: border-box; }
-        button { width: 100%; padding: 10px; background-color: #fee500; border: none; cursor: pointer; font-weight: bold; }
+        .auth-container { width: 400px; margin: 20px auto; text-align: center; border: 1px solid #bdbaba; padding: 20px; border-radius: 8px; }
+        .input-group { margin-bottom: 15px; text-align: left; }
+        .input-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
+        input { width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #bdbaba; border-radius: 4px; height: 50px; }
+        button { width: 100%; padding: 12px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        button:hover { background-color: #218838; }
+
+        .address-group label {margin-bottom: 5px; font-weight: bold; font-size: 14px; }
+        .address-group input{width: 65%; margin-right: 10px;}
+        .address-group button{width: 30%;}
+        .address-detail{ display: flex; justify-content: left; margin-bottom: 10px; font-weight: bold; font-size: 14px;  }
+
     </style>
 </head>
 <body>
@@ -17,24 +23,59 @@
     <h2>🎉 가입을 환영합니다!</h2>
     <p>서비스 이용을 위해 추가 정보를 입력해주세요.</p>
     <hr>
-    <form th:action="@{/auth/register/social}" method="post">
-        <div class="form-group">
-            <label>이메일</label>
-            <input type="email" name="email" th:value="${email}" readonly>
+    <form th:action="@{/auth/register/social}" th:object="${socialSignUpDTO}" method="post">
+
+        <input type="hidden" th:field="*{email}">
+        <input type="hidden" th:field="*{platform}">
+        <input type="hidden" th:field="*{platformId}">
+        <input type="hidden" th:field="*{nickname}">
+
+        <div class="input-group">
+            <label for="name">이름</label>
+            <input type="text" th:field="*{name}" placeholder="실명을 입력하세요" required>
         </div>
 
-        <div class="form-group">
-            <label>닉네임</label>
-            <input type="text" name="nickname" placeholder="사용하실 닉네임을 입력하세요" required>
-        </div>
-
-        <div class="form-group">
+        <div class="input-group">
             <label>전화번호</label>
-            <input type="tel" name="phone" placeholder="010-0000-0000" required>
+            <input type="tel" th:field="*{phoneNumber}" placeholder="010-0000-0000" required>
+        </div>
+
+        <div class="input-group">
+            <label for="postNum">주소</label>
+            <div class="address-group">
+                <input type="text" th:field="*{postNum}" id="postNum" placeholder="우편 번호" readonly>
+                <button type="button" onclick="execDaumPostcode()">찾기</button>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <input type="text" th:field="*{buildingName}" id="buildingName" placeholder="기본 주소" readonly>
+        </div>
+
+        <div class="input-group">
+            <label for="dong">동</label>
+            <input type="text" th:field="*{dong}" placeholder="ex) 102">
+        </div>
+
+        <div class="input-group">
+            <label for="ho">호</label>
+            <input type="text" th:field="*{ho}" placeholder="ex) 301">
         </div>
 
         <button type="submit">가입 완료</button>
     </form>
 </div>
+
+<script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+<script>
+    function execDaumPostcode() {
+        new daum.Postcode({
+            oncomplete: function(data) {
+                document.getElementById('postNum').value = data.zonecode;
+                document.getElementById('buildingName').value = data.address;
+            }
+        }).open();
+    }
+</script>
 </body>
 </html>

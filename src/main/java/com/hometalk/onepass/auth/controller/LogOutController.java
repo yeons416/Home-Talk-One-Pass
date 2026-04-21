@@ -22,7 +22,10 @@ public class LogOutController {
             new SecurityContextLogoutHandler().logout(request, response, auth);
         }
 
+        String clientId = "4ad79c0bcd4a2a0ab2ac8b3d0fb76b76";
+        String redirectUri = "http://localhost:8090/hometop/auth/oauth2/kakao";
+
         // 4. 로그아웃 후 로그인 페이지로 리다이렉트
-        return "redirect:/auth";
+        return "redirect:https://kauth.kakao.com/oauth/logout?client_id=" + clientId + "&logout_redirect_uri=" + redirectUri;
     }
 }
