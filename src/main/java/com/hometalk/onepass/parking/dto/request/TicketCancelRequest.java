@@ -7,9 +7,8 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class VehicleRegisterRequest {
+public class TicketCancelRequest {
 
-    private String vehicleNumber;
-    private String model;
-    private String vehicleType;
+    private Long parkingId;
+    private String ticketType;
 }

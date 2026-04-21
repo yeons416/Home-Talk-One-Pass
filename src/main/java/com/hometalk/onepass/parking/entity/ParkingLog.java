@@ -129,4 +129,12 @@ public class ParkingLog extends BaseTimeEntity {
     public enum ParkingStatus {
         PARKED, EXITED, OVERSTAY
     }
+
+    // ─── 티켓 적용 시간 업데이트
+    public void updateAppliedMinutes(int appliedMinutes) {
+        if (appliedMinutes < 0) {
+            throw new IllegalArgumentException("티켓 적용 시간은 0 이상이어야 합니다.");
+        }
+        this.appliedMinutes = appliedMinutes;
+    }
 }

@@ -112,4 +112,10 @@ public class VisitReservationController {
         model.addAttribute("hours", IntStream.rangeClosed(0, 23).boxed().toList());
         model.addAttribute("minutes", List.of(0, 10, 20, 30, 40, 50));
     }
+
+    // 방문 차량 관리 페이지
+    @GetMapping("/visit/manage")
+    public String visitManagePage() {
+        return "parking/visit-management";
+    }
 }
