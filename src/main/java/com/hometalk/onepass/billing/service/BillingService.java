@@ -2,6 +2,7 @@ package com.hometalk.onepass.billing.service;
 
 import com.hometalk.onepass.billing.dto.BillingDetailResponse;
 import com.hometalk.onepass.billing.dto.BillingSummaryResponse;
+import com.hometalk.onepass.billing.dto.ResidentBillingResponse;
 import com.hometalk.onepass.billing.entity.Billing;
 import com.hometalk.onepass.billing.entity.BillingActionType;
 import com.hometalk.onepass.billing.entity.BillingDetail;
@@ -18,10 +19,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.YearMonth;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -33,15 +33,41 @@ public class BillingService {
     private final BillingLogRepository    billingLogRepository;
 
     // ─────────────────────────────────────────────
-    // 관리자: 고지서 목록 (업로드 화면 DB 모드)
-    //   status=null → PAID+UNPAID 전체 반환
+    // AdminBillingStats
+    //   BillingPageController에서
+    //   import com.hometalk.onepass.billing.service.BillingService.AdminBillingStats;
+    //   로 사용 → 필드명 total / paid / unpaid / paidRate 고정
+    // ─────────────────────────────────────────────
+
+    public record AdminBillingStats(
+            long   total,
+            long   paid,
+            long   unpaid,
+            double paidRate
+    ) {}
+
+    // ─────────────────────────────────────────────
+    // 관리자: 통계 (미납 세대 관리 상단 Summary Cards)
+    // ─────────────────────────────────────────────
+
+    @Transactional(readOnly = true)
+    public AdminBillingStats getAdminStats(String billingMonth) {
+        long total  = billingRepository.countDistinctHouseholdByBillingMonth(billingMonth);
+        long paid   = billingRepository.countByBillingMonthAndStatus(billingMonth, BillingStatus.PAID);
+        long unpaid = billingRepository.countByBillingMonthAndStatus(billingMonth, BillingStatus.UNPAID);
+        double rate = total > 0 ? Math.round((double) paid / total * 1000.0) / 10.0 : 0.0;
+        return new AdminBillingStats(total, paid, unpaid, rate);
+    }
+
+    // ─────────────────────────────────────────────
+    // 관리자: 고지서 전체 목록 (업로드 화면 DB 모드)
+    //   BillingApiController.getAdminList() 에서 사용
     // ─────────────────────────────────────────────
 
     @Transactional(readOnly = true)
     public Page<BillingSummaryResponse> getAdminBillingList(
             Integer year, String month, String dong, int size, int page
     ) {
-        // month("2026-03")가 있으면 year 필터 무시, month 단독 사용
         String yearFrom = (year != null && month == null) ? year + "-01" : null;
         String yearTo   = (year != null && month == null) ? year + "-12" : null;
 
@@ -56,9 +82,65 @@ public class BillingService {
                 .map(BillingSummaryResponse::from);
     }
 
+// ─────────────────────────────────────────────
+// 관리자: 월별 전체 삭제 (실수 업로드 복구용)
+//   - billing_detail → billing_log → billing 순 삭제
+//   - 삭제 로그 1건 기록 (UPLOAD 로그로 기록, 감사용)
+// ─────────────────────────────────────────────
+
+    @Transactional
+    public int deleteByBillingMonth(String billingMonth, Long adminId) {
+        List<Billing> billings = billingRepository.findAllByBillingMonth(billingMonth);
+        if (billings.isEmpty()) return 0;
+
+        int count = billings.size();
+
+        // 1) billing_detail 삭제
+        for (Billing b : billings) {
+            billingDetailRepository.deleteByBilling_Id(b.getId());
+        }
+
+        // 2) billing 본체 삭제
+        billingRepository.deleteAll(billings);
+
+        // 3) 삭제 로그 기록 (UPLOAD action으로 통합 — 감사용)
+        //    별도 DELETE enum 추가를 원하면 BillingActionType에 DELETE 추가
+        billingLogRepository.save(BillingLog.builder()
+                .billing(null)
+                .userId(adminId)
+                .actionType(BillingActionType.UPLOAD)
+                .build());
+
+        return count;
+    }
+
     // ─────────────────────────────────────────────
-    // 관리자: 미납 세대 목록
-    //   overdueOnly=true → billingMonth <= 3개월 전까지만 (체납 기준)
+    // 관리자: 미납 세대 목록 — PageRequest 직접 전달
+    //   BillingPageController.unpaidPage() 에서 사용
+    // ─────────────────────────────────────────────
+
+    @Transactional(readOnly = true)
+    public Page<BillingSummaryResponse> getUnpaidList(
+            String dong, Integer year, String month,
+            BillingStatus status, boolean overdue, PageRequest pageable
+    ) {
+        String yearFrom      = (year != null && month == null) ? year + "-01" : null;
+        String yearTo        = (year != null && month == null) ? year + "-12" : null;
+        String overdueBefore = overdue
+                ? YearMonth.now().minusMonths(3).toString()
+                : null;
+        // status=null이면 UNPAID 고정 (미납 관리 페이지 기본값)
+        BillingStatus resolvedStatus = (status != null) ? status : BillingStatus.UNPAID;
+
+        return billingRepository
+                .findAllWithAdminFilter(dong, yearFrom, yearTo, month,
+                        null, resolvedStatus, overdueBefore, pageable)
+                .map(b -> BillingSummaryResponse.of(b, "—")); // TODO: CustomUserDetails 연동 후 교체
+    }
+
+    // ─────────────────────────────────────────────
+    // 관리자: 미납 세대 목록 — API 파라미터 방식
+    //   BillingApiController.getAdminUnpaid() 에서 사용
     // ─────────────────────────────────────────────
 
     @Transactional(readOnly = true)
@@ -69,7 +151,7 @@ public class BillingService {
         String yearFrom      = (year != null && month == null) ? year + "-01" : null;
         String yearTo        = (year != null && month == null) ? year + "-12" : null;
         String overdueBefore = Boolean.TRUE.equals(overdueOnly)
-                ? YearMonth.now().minusMonths(3).toString()   // "2025-12" 이전 = 3개월 이상 체납
+                ? YearMonth.now().minusMonths(3).toString()
                 : null;
 
         PageRequest pageable = PageRequest.of(page, size,
@@ -80,31 +162,13 @@ public class BillingService {
         return billingRepository
                 .findAllWithAdminFilter(dong, yearFrom, yearTo, month,
                         null, BillingStatus.UNPAID, overdueBefore, pageable)
-                .map(b -> BillingSummaryResponse.of(b, "—")); // TODO: residentName → CustomUserDetails 연동 후 교체
-    }
-
-    // ─────────────────────────────────────────────
-    // 관리자: 통계 (미납 세대 관리 상단 Summary Cards)
-    // ─────────────────────────────────────────────
-
-    @Transactional(readOnly = true)
-    public Map<String, Object> getAdminStats(String billingMonth) {
-        long total  = billingRepository.countDistinctHouseholdByBillingMonth(billingMonth);
-        long paid   = billingRepository.countByBillingMonthAndStatus(billingMonth, BillingStatus.PAID);
-        long unpaid = billingRepository.countByBillingMonthAndStatus(billingMonth, BillingStatus.UNPAID);
-        double rate = total > 0 ? Math.round((double) paid / total * 1000.0) / 10.0 : 0.0;
-
-        Map<String, Object> stats = new HashMap<>();
-        stats.put("totalHouseholds", total);
-        stats.put("paidCount",       paid);
-        stats.put("unpaidCount",     unpaid);
-        stats.put("paymentRate",     rate);
-        return stats;
+                .map(b -> BillingSummaryResponse.of(b, "—")); // TODO: CustomUserDetails 연동 후 교체
     }
 
     // ─────────────────────────────────────────────
     // 관리자: 납부완료 처리
-    //   billing_logs에 STATUS_CHANGE 기록 (paid_at은 로그 created_at으로 추적)
+    //   - Billing.status UNPAID → PAID
+    //   - BillingLog에 STATUS_CHANGE 기록 (created_at이 실제 납부일)
     // ─────────────────────────────────────────────
 
     @Transactional
@@ -112,7 +176,7 @@ public class BillingService {
         Billing billing = billingRepository.findById(billingId)
                 .orElseThrow(() -> new EntityNotFoundException("Billing not found: " + billingId));
 
-        if (billing.getStatus() == BillingStatus.PAID) return;  // 중복 처리 방지
+        if (billing.getStatus() == BillingStatus.PAID) return;
 
         billingRepository.updateStatus(billingId, BillingStatus.PAID);
 
@@ -124,7 +188,7 @@ public class BillingService {
     }
 
     // ─────────────────────────────────────────────
-    // 고지서 상세 (관리자 미리보기 + 입주민 고지서 모달 공통)
+    // 고지서 상세 (관리자 미리보기 + 입주민 모달 공통)
     // ─────────────────────────────────────────────
 
     @Transactional(readOnly = true)
@@ -147,7 +211,24 @@ public class BillingService {
     }
 
     // ─────────────────────────────────────────────
-    // 입주민: 관리비 내역 목록
+    // 입주민: 관리비 목록 — PageRequest 직접 전달
+    //   BillingPageController.billingPage() 에서 사용
+    //   시그니처: getBillingList(householdId, yearFrom, yearTo, status, pageable)
+    // ─────────────────────────────────────────────
+
+    @Transactional(readOnly = true)
+    public Page<BillingSummaryResponse> getBillingList(
+            Long householdId, String yearFrom, String yearTo,
+            BillingStatus status, PageRequest pageable
+    ) {
+        return billingRepository
+                .findByHouseholdIdWithFilter(householdId, yearFrom, yearTo, null, status, pageable)
+                .map(BillingSummaryResponse::from);
+    }
+
+    // ─────────────────────────────────────────────
+    // 입주민: 관리비 목록 — API 파라미터 방식
+    //   BillingApiController.getResidentList() 에서 사용
     // ─────────────────────────────────────────────
 
     @Transactional(readOnly = true)
@@ -169,29 +250,60 @@ public class BillingService {
     }
 
     // ─────────────────────────────────────────────
-    // 입주민: 요약 카드 (이번 달 청구액 / 미납 건수 / 최근 납부일)
+    // 입주민: 페이지 초기 데이터 (배너 + 요약 카드 + 최근 목록)
+    //   BillingPageController.billingPage() 에서 사용
+    //   ResidentBillingResponse 필드:
+    //     hasUnpaid, latestUnpaidMonth, currentMonthAmount, unpaidCount, lastPaidDate, billings
     // ─────────────────────────────────────────────
 
     @Transactional(readOnly = true)
-    public Map<String, Object> getResidentSummary(Long householdId) {
-        String currentMonth = YearMonth.now().toString();
+    public ResidentBillingResponse getResidentBillingPage(Long householdId) {
+        String currentMonth = YearMonth.now().toString(); // "2026-04"
 
+        // 이번 달 청구액
         Optional<Billing> current = billingRepository
                 .findByHousehold_IdAndBillingMonth(householdId, currentMonth);
 
+        // 미납 건수
         int unpaidCount = billingRepository
                 .countByHousehold_IdAndStatus(householdId, BillingStatus.UNPAID);
 
-        Optional<Billing> latestPaid = billingRepository
-                .findLatestPaidByHouseholdId(householdId);
+        // 미납 배너: 최신 미납 1건
+        Optional<Billing> latestUnpaid = billingRepository
+                .findLatestUnpaidByHouseholdId(householdId);
 
-        Map<String, Object> summary = new HashMap<>();
-        summary.put("currentMonthAmount", current.map(Billing::getTotalAmount).orElse(null));
-        summary.put("currentMonth",       currentMonth);
-        summary.put("unpaidCount",        unpaidCount);
-        // paid_at은 billing_logs.created_at 기준 — 여기서는 billingMonth로 대체 표시
-        // TODO: BillingLogRepository에서 최신 STATUS_CHANGE 로그의 created_at 조회로 교체
-        summary.put("latestPaidMonth",    latestPaid.map(Billing::getBillingMonth).orElse(null));
-        return summary;
+        boolean hasUnpaid = latestUnpaid.isPresent();
+
+        // "2026-02" → "2026년 2월"
+        String latestUnpaidMonth = latestUnpaid
+                .map(b -> {
+                    String[] parts = b.getBillingMonth().split("-");
+                    return parts[0] + "년 " + Integer.parseInt(parts[1]) + "월";
+                })
+                .orElse(null);
+
+        // 최근 납부일: BillingLog에서 STATUS_CHANGE 로그의 created_at 조회
+        LocalDate lastPaidDate = billingLogRepository
+                .findTopByBilling_Household_IdAndActionTypeOrderByCreatedAtDesc(
+                        householdId, BillingActionType.STATUS_CHANGE)
+                .map(log -> log.getCreatedAt().toLocalDate())
+                .orElse(null);
+
+        // 최근 3건 목록 (더보기 초기값)
+        List<BillingSummaryResponse> billings = billingRepository
+                .findByHouseholdIdWithFilter(
+                        householdId, null, null, null, null,
+                        PageRequest.of(0, 3, Sort.by(Sort.Direction.DESC, "billingMonth")))
+                .map(BillingSummaryResponse::from)
+                .getContent();
+
+        return ResidentBillingResponse.builder()
+                .hasUnpaid(hasUnpaid)
+                .latestUnpaidMonth(latestUnpaidMonth)
+                .currentMonthAmount(current.map(Billing::getTotalAmount).orElse(null))
+                .unpaidCount(unpaidCount)
+                .lastPaidDate(lastPaidDate)
+                .billings(billings)
+                .build();
     }
 }

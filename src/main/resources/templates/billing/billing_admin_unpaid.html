@@ -116,12 +116,12 @@
                         <tbody id="billingTableBody">
                         <th:block th:if="${billingList != null and !billingList.isEmpty()}">
                             <tr th:each="item, stat : ${billingList}"
-                                th:with="isUnpaid=${item.status.name() == 'UNPAID'},
-                                         isDone=${item.status.name() == 'PAID'}"
+                                th:with="isUnpaid=${item.status != null and item.status.name() == 'UNPAID'},
+         isDone=${item.status != null and item.status.name() == 'PAID'}"
                                 th:classappend="${isDone} ? 'done' : ''">
                                 <td th:text="${stat.index + 1 + (currentPage * pageSize)}">1</td>
-                                <td th:text="${item.unit}">101-1204</td>
-                                <td th:text="${item.residentName}">홍길동</td>
+                                <td th:text="${item.dong != null ? item.dong + ' ' + item.ho : '-'}">101-104</td>
+                                <td th:text="${item.residentName != null ? item.residentName : '-'}">홍길동</td>
                                 <td th:text="${item.billingMonth}">2026.02</td>
                                 <td th:text="${#numbers.formatInteger(item.totalAmount, 0, 'COMMA') + '원'}">119,300원</td>
                                 <td th:text="${#temporals.format(item.dueDate, 'yyyy.MM.dd')}">2026.02.28</td>
@@ -134,7 +134,7 @@
                                     <button th:if="${isUnpaid}"
                                             class="btn-process"
                                             th:data-billing-id="${item.billingId}"
-                                            th:data-unit="${item.unit}"
+                                            th:data-unit="${item.dong != null ? item.dong + ' ' + item.ho : '-'}"
                                             th:data-month="${item.billingMonth}"
                                             onclick="openConfirm(this)">납부완료 처리</button>
                                     <span th:unless="${isUnpaid}" class="btn-process done-txt">처리완료</span>

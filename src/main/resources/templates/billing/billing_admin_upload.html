@@ -15,19 +15,14 @@
 
 <div class="main-layout" style="display:flex; min-height:100vh;">
 
-    <!-- 사이드바 -->
     <div th:replace="~{fragments/sidebar :: sidebar(currentPage='billing')}"></div>
 
-    <!-- 오른쪽 영역 -->
     <div class="main-wrapper" style="flex:1; display:flex; flex-direction:column;">
 
-        <!-- 헤더 -->
         <div th:replace="~{fragments/header_menu :: header_menu(currentPath01='billing', currentPath02='')}"></div>
 
-        <!-- 카테고리 바 (빈 바 고정) -->
         <header class="category-menu-bar">&nbsp;</header>
 
-        <!-- 메인 콘텐츠 -->
         <div class="main-content">
 
             <div class="page-title">고지서 업로드</div>
@@ -40,24 +35,20 @@
                 <input type="file" id="fileInput" accept=".xlsx,.csv" style="display:none" />
             </div>
 
-            <!-- 중복 확인 팝업 -->
-            <div class="confirm-overlay" id="dupOverlay" style="display:none">
+            <!-- 업로드 확정 팝업 (내용 동적 변경) -->
+            <div class="confirm-overlay" id="confirmOverlay" style="display:none">
                 <div class="confirm-box">
-                    <div class="confirm-title">이미 데이터가 존재합니다.</div>
-                    <div class="confirm-msg">해당 월 고지서가 이미 업로드되어 있습니다.</div>
-                    <div class="confirm-msg-warn">덮어쓰면 기존 데이터가 갱신됩니다. (변경불가)</div>
+                    <div class="confirm-title"    id="confirmTitle">업로드 확정</div>
+                    <div class="confirm-msg"      id="confirmMsg"></div>
+                    <div class="confirm-msg-warn" id="confirmMsgWarn"></div>
                     <div class="confirm-btns">
-                        <button class="btn btn-ghost" onclick="cancelDup()">취소</button>
-                        <button class="btn btn-point" onclick="confirmDup()">확인</button>
-                        <!-- confirmDup()이 두 가지 역할을 해야 함 -->
-                        <!-- 1. 파일 중복 시 → processFile() -->
-                        <!-- 2. 업로드 확정 시 → confirmUpload() -->
-
+                        <button class="btn btn-ghost" onclick="cancelConfirm()">취소</button>
+                        <button class="btn btn-point" onclick="doConfirmUpload()">확인</button>
                     </div>
                 </div>
             </div>
 
-            <!-- 필터 (업로드 후 표시) -->
+            <!-- 필터 -->
             <div class="filter-row" id="filterBar" style="display:none">
                 <div class="panel-wrap">
                     <button class="filter-btn" id="btnYear" onclick="togglePanel('year')">
@@ -85,11 +76,18 @@
                 </div>
             </div>
 
-            <!-- 유효성 검사 + 미리보기 테이블 -->
+            <!-- 테이블 -->
             <div class="table-section" id="tableSection" style="display:none">
                 <div class="table-header-row">
                     <div class="table-header-title">유효성 검사 + 고지서 미리보기 + 업로드 확정</div>
-                    <div class="table-header-meta" id="tableMeta"></div>
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <div class="table-header-meta" id="tableMeta"></div>
+                        <button id="btnDeleteMonth" class="btn btn-ghost"
+                                style="display:none; color:#d83c2d; border-color:#d83c2d;"
+                                onclick="deleteCurrentMonth()">
+                            이 월 전체 삭제
+                        </button>
+                    </div>
                 </div>
                 <div class="table-wrap">
                     <table class="data-table">
@@ -102,7 +100,7 @@
                             <th class="sortable" onclick="sortBy('total_amount')">청구금액 <span class="sort-icon">▼</span></th>
                             <th class="sortable" onclick="sortBy('valid')">검증 <span class="sort-icon">▼</span></th>
                             <th>고지서 미리보기</th>
-                            <th class="sortable" onclick="sortBy('upsertType')">비고 (UPSERT) <span class="sort-icon">▼</span></th>
+                            <th id="thUpsert" class="sortable" onclick="sortBy('upsertType')">비고 (UPSERT) <span class="sort-icon">▼</span></th>
                         </tr>
                         </thead>
                         <tbody id="tableBody"></tbody>
@@ -111,24 +109,17 @@
                 <div class="table-footer">
                     <div class="table-summary" id="tableSummary"></div>
                     <div class="table-actions">
-                        <button class="btn btn-ghost" onclick="cancelUpload()" id="btnCancel">취소</button>
                         <button class="btn-confirm-upload disabled" id="btnConfirm" onclick="confirmUpload()">업로드 확정 ↑</button>
                     </div>
                 </div>
             </div>
 
-            <!-- 업로드 완료 배너 -->
-            <div class="upload-done-banner" id="uploadDoneBanner" style="display:none">
-                <span class="done-icon">✓</span>
-                <span id="uploadDoneMsg"></span>
-            </div>
-
-        </div><!-- /main-content -->
+        </div>
 
         <footer th:replace="~{fragments/footer :: footer}"></footer>
 
-    </div><!-- /main-wrapper -->
-</div><!-- /main-layout -->
+    </div>
+</div>
 
 <!-- 고지서 미리보기 모달 -->
 <div class="modal-overlay" id="previewOverlay" style="display:none" onclick="closePreview(event)">

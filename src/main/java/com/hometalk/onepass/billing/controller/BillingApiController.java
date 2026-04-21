@@ -3,6 +3,7 @@ package com.hometalk.onepass.billing.controller;
 import com.hometalk.onepass.billing.dto.BillingDetailResponse;
 import com.hometalk.onepass.billing.dto.BillingSummaryResponse;
 import com.hometalk.onepass.billing.service.BillingService;
+import com.hometalk.onepass.billing.service.BillingService.AdminBillingStats;
 import com.hometalk.onepass.billing.service.BillingUploadService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -24,60 +25,60 @@ public class BillingApiController {
     private final BillingService       billingService;
     private final BillingUploadService billingUploadService;
 
-    // ─────────────────────────────────────────────────────────────
-    // 관리자: 고지서 목록 (업로드 화면 DB 모드)
-    //   GET /api/billing/admin/list?year=2026&month=2026-03&dong=101동&size=200&page=0
-    //   → Page<BillingSummaryResponse>  (content[].billingId, unit, billingMonth, totalAmount, status)
-    // ─────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────
+    // 관리자: 고지서 전체 목록 (업로드 화면 DB 모드)
+    //   GET /api/billing/admin/list
+    // ─────────────────────────────────────────────
 
     @GetMapping("/admin/list")
     public ResponseEntity<Page<BillingSummaryResponse>> getAdminList(
-            @RequestParam(required = false)           Integer year,
-            @RequestParam(required = false)           String  month,
-            @RequestParam(required = false)           String  dong,
-            @RequestParam(defaultValue = "200")       int     size,
-            @RequestParam(defaultValue = "0")         int     page
+            @RequestParam(required = false)     Integer year,
+            @RequestParam(required = false)     String  month,
+            @RequestParam(required = false)     String  dong,
+            @RequestParam(defaultValue = "200") int     size,
+            @RequestParam(defaultValue = "0")   int     page
     ) {
         return ResponseEntity.ok(
                 billingService.getAdminBillingList(year, month, dong, size, page)
         );
     }
 
-    // ─────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────
     // 관리자: 미납 세대 목록
-    //   GET /api/billing/admin/unpaid?year=2026&month=2026-03&dong=101동&overdueOnly=true
-    // ─────────────────────────────────────────────────────────────
+    //   GET /api/billing/admin/unpaid
+    // ─────────────────────────────────────────────
 
     @GetMapping("/admin/unpaid")
     public ResponseEntity<Page<BillingSummaryResponse>> getAdminUnpaid(
-            @RequestParam(required = false)           Integer year,
-            @RequestParam(required = false)           String  month,
-            @RequestParam(required = false)           String  dong,
-            @RequestParam(required = false)           Boolean overdueOnly,
-            @RequestParam(defaultValue = "20")        int     size,
-            @RequestParam(defaultValue = "0")         int     page
+            @RequestParam(required = false)    Integer year,
+            @RequestParam(required = false)    String  month,
+            @RequestParam(required = false)    String  dong,
+            @RequestParam(required = false)    Boolean overdueOnly,
+            @RequestParam(defaultValue = "20") int     size,
+            @RequestParam(defaultValue = "0")  int     page
     ) {
         return ResponseEntity.ok(
                 billingService.getAdminUnpaidList(year, month, dong, overdueOnly, size, page)
         );
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // 관리자: 통계 (미납 세대 관리 상단 카드)
+    // ─────────────────────────────────────────────
+    // 관리자: 통계
     //   GET /api/billing/admin/stats?billingMonth=2026-03
-    // ─────────────────────────────────────────────────────────────
+    //   → AdminBillingStats { total, paid, unpaid, paidRate }
+    // ─────────────────────────────────────────────
 
     @GetMapping("/admin/stats")
-    public ResponseEntity<Map<String, Object>> getAdminStats(
+    public ResponseEntity<AdminBillingStats> getAdminStats(
             @RequestParam String billingMonth
     ) {
         return ResponseEntity.ok(billingService.getAdminStats(billingMonth));
     }
 
-    // ─────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────
     // 관리자: 납부완료 처리
     //   POST /api/billing/admin/{billingId}/pay?adminId=1
-    // ─────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────
 
     @PostMapping("/admin/{billingId}/pay")
     public ResponseEntity<Void> markAsPaid(
@@ -88,11 +89,11 @@ public class BillingApiController {
         return ResponseEntity.ok().build();
     }
 
-    // ─────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────
     // 업로드: 부과월 중복 확인
     //   GET /api/billing/admin/upload/check?billingMonth=2026-03
     //   → { "exists": true/false }
-    // ─────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────
 
     @GetMapping("/admin/upload/check")
     public ResponseEntity<Map<String, Boolean>> checkDuplicate(
@@ -103,12 +104,12 @@ public class BillingApiController {
         );
     }
 
-    // ─────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────
     // 업로드: 확정 저장
     //   POST /api/billing/admin/upload/confirm?adminId=1
-    //   Body: [{ householdId, billingMonth, dueDate, totalAmount, items:[{itemName,itemAmount}] }]
+    //   Body: List<UploadRow>
     //   → { insertCount, updateCount }
-    // ─────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────
 
     @PostMapping("/admin/upload/confirm")
     public ResponseEntity<BillingUploadService.UploadConfirmResult> confirmUpload(
@@ -117,12 +118,27 @@ public class BillingApiController {
     ) {
         return ResponseEntity.ok(billingUploadService.confirmUpload(rows, adminId));
     }
+    // ─────────────────────────────────────────────
+    // 관리자: 월별 전체 삭제 (실수 업로드 복구용)
+    //   DELETE /api/billing/admin/month/2026-03?adminId=1
+    //   → { "deleted": 120 }
+    // ─────────────────────────────────────────────
 
-    // ─────────────────────────────────────────────────────────────
-    // 고지서 상세 (관리자 미리보기 모달 + 입주민 디지털 고지서 모달 공통)
+    @DeleteMapping("/admin/month/{billingMonth}")
+    public ResponseEntity<Map<String, Integer>> deleteByMonth(
+            @PathVariable String billingMonth,
+            @RequestParam(defaultValue = "1") Long adminId  // TODO: CustomUserDetails로 교체
+    ) {
+        int deleted = billingService.deleteByBillingMonth(billingMonth, adminId);
+        return ResponseEntity.ok(Map.of("deleted", deleted));
+    }
+
+
+
+    // ─────────────────────────────────────────────
+    // 고지서 상세 (관리자 미리보기 + 입주민 고지서 모달 공통)
     //   GET /api/billing/{billingId}/detail
-    //   → { billingId, billingMonth, dongHo, dueDate, totalAmount, status, items }
-    // ─────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────
 
     @GetMapping("/{billingId}/detail")
     public ResponseEntity<BillingDetailResponse> getDetail(
@@ -131,34 +147,22 @@ public class BillingApiController {
         return ResponseEntity.ok(billingService.getBillingDetail(billingId));
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // 입주민: 관리비 내역 목록
-    //   GET /api/billing/resident/list?householdId=1&year=2026&month=2026-03&status=UNPAID
-    // ─────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────
+    // 입주민: 관리비 목록 (더보기 / 필터)
+    //   GET /api/billing/resident/list
+    // ─────────────────────────────────────────────
 
     @GetMapping("/resident/list")
     public ResponseEntity<Page<BillingSummaryResponse>> getResidentList(
-            @RequestParam                             Long    householdId,  // TODO: CustomUserDetails로 교체
-            @RequestParam(required = false)           Integer year,
-            @RequestParam(required = false)           String  month,
-            @RequestParam(required = false)           String  status,
-            @RequestParam(defaultValue = "12")        int     size,
-            @RequestParam(defaultValue = "0")         int     page
+            @RequestParam                       Long    householdId,  // TODO: CustomUserDetails로 교체
+            @RequestParam(required = false)     Integer year,
+            @RequestParam(required = false)     String  month,
+            @RequestParam(required = false)     String  status,
+            @RequestParam(defaultValue = "12")  int     size,
+            @RequestParam(defaultValue = "0")   int     page
     ) {
         return ResponseEntity.ok(
                 billingService.getResidentBillingList(householdId, year, month, status, size, page)
         );
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // 입주민: 요약 카드 (이번 달 청구액 / 미납 건수 / 최근 납부일)
-    //   GET /api/billing/resident/summary?householdId=1
-    // ─────────────────────────────────────────────────────────────
-
-    @GetMapping("/resident/summary")
-    public ResponseEntity<Map<String, Object>> getResidentSummary(
-            @RequestParam Long householdId   // TODO: CustomUserDetails로 교체
-    ) {
-        return ResponseEntity.ok(billingService.getResidentSummary(householdId));
     }
 }

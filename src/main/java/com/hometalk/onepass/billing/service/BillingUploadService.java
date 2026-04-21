@@ -47,15 +47,29 @@ public class BillingUploadService {
             boolean hasError = validationError != null;
             if (hasError) errorCount++;
 
-            // householdId("101-101") → Household 조회 → 기존 billing 존재 여부로 UPSERT 판별
+            Long billingId = null;
+            String dong = null;
+            String ho = null;
             UpsertType upsertType = UpsertType.ERROR;
+
             if (!hasError) {
-                Optional<Household> household = findHousehold(row.getHouseholdId());
-                if (household.isPresent()) {
+                Optional<Household> householdOpt = findHousehold(row.getHouseholdId());
+
+                if (householdOpt.isPresent()) {
+                    Household household = householdOpt.get();
+                    dong = household.getDong();
+                    ho = household.getHo();
+
                     Optional<Billing> existing = billingRepository
                             .findByHousehold_IdAndBillingMonth(
-                                    household.get().getId(), row.getBillingMonth());
-                    upsertType = existing.isPresent() ? UpsertType.UPDATE : UpsertType.INSERT;
+                                    household.getId(), row.getBillingMonth());
+
+                    if (existing.isPresent()) {
+                        billingId = existing.get().getId();
+                        upsertType = UpsertType.UPDATE;
+                    } else {
+                        upsertType = UpsertType.INSERT;
+                    }
                 } else {
                     upsertType = UpsertType.INSERT;
                 }
@@ -64,6 +78,9 @@ public class BillingUploadService {
             previewRows.add(UploadPreviewRow.builder()
                     .num(num)
                     .householdId(row.getHouseholdId())
+                    .dong(dong)
+                    .ho(ho)
+                    .billingId(billingId)
                     .billingMonth(row.getBillingMonth())
                     .totalAmount(row.getTotalAmount())
                     .validationError(validationError)
@@ -114,7 +131,6 @@ public class BillingUploadService {
                 insertCount++;
             }
 
-            // billing_details 저장
             List<BillingDetail> details = new ArrayList<>();
             List<ItemRow> items = row.getItems();
             for (int i = 0; i < items.size(); i++) {
@@ -126,14 +142,11 @@ public class BillingUploadService {
                         .build());
             }
             billingDetailRepository.saveAll(details);
-
-            // ← 세대별 로그 저장 제거
         }
 
-        // 업로드 단위로 로그 1건만 저장
         if (insertCount + updateCount > 0) {
             billingLogRepository.save(BillingLog.builder()
-                    .billing(null)   // 특정 세대 아님
+                    .billing(null)
                     .userId(adminId)
                     .actionType(BillingActionType.UPLOAD)
                     .build());
@@ -159,15 +172,11 @@ public class BillingUploadService {
     // 내부 유틸
     // ─────────────────────────────────────────────
 
-    /**
-     * householdId("101-101") → dong="101동", ho="101호" 변환 후 Household 조회
-     * 엑셀 동/호 형식: "동번호-호번호" (예: "101-101", "102-305")
-     */
     private Optional<Household> findHousehold(String householdId) {
         String[] parts = householdId.split("-");
         if (parts.length < 2) return Optional.empty();
-        String dong = parts[0] + "동";  // "101" → "101동"
-        String ho   = parts[1] + "호";  // "101" → "101호"
+        String dong = parts[0] + "동";
+        String ho   = parts[1] + "호";
         return householdRepository.findByDongAndHo(dong, ho);
     }
 
@@ -180,7 +189,7 @@ public class BillingUploadService {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class UploadRow {
-        private String        householdId;  // 엑셀 동/호 값 (예: "101-101")
+        private String        householdId;
         private String        billingMonth;
         private LocalDate     dueDate;
         private BigDecimal    totalAmount;
@@ -205,6 +214,9 @@ public class BillingUploadService {
         private BigDecimal totalAmount;
         private String     validationError;
         private UpsertType upsertType;
+        private Long       billingId;
+        private String     dong;
+        private String     ho;
     }
 
     public record UploadPreviewResult(

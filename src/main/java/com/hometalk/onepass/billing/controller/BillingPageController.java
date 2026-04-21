@@ -1,4 +1,3 @@
-/*
 package com.hometalk.onepass.billing.controller;
 
 import com.hometalk.onepass.billing.dto.BillingSummaryResponse;
@@ -124,4 +123,4 @@ public class BillingPageController {
         return "billing/billing_admin_unpaid";
     }
 
-}*/
+}
