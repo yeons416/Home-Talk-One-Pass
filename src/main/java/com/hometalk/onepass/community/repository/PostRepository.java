@@ -72,4 +72,5 @@ public interface PostRepository extends JpaRepository<Post, Long> {
                                     @Param("status") PostStatus status,
                                     Pageable pageable);
 
+    long countByCategoryId(Long categoryId);
 }

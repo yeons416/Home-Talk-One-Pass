@@ -1,10 +1,17 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+    <th:block th:replace="~{fragments/head :: head(pageTitle='커뮤니티')}"></th:block>
+
+    <link rel="stylesheet" th:href="@{/css/community/common.css}">
+    <link rel="stylesheet" th:href="@{/css/community/adminpage.css}">
 </head>
+
 <body>
 
+
+
+
+<script src="/js/community/adminpage.js"></script>
 </body>
 </html>

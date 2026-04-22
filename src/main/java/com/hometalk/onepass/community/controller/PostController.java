@@ -1,6 +1,6 @@
 package com.hometalk.onepass.community.controller;
 
-import com.hometalk.onepass.community.dto.CommentRsDTO;
+import com.hometalk.onepass.community.dto.response.CommentRsDTO;
 import com.hometalk.onepass.community.dto.request.PostRequestDTO;
 import com.hometalk.onepass.community.dto.response.*;
 import com.hometalk.onepass.community.enums.PostStatus;
@@ -10,7 +10,6 @@ import com.hometalk.onepass.community.service.CommentService;
 import com.hometalk.onepass.community.service.PostService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
-import org.apache.poi.util.StringUtil;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
