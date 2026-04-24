@@ -40,17 +40,37 @@
       }
 
 
-      /* 관리자 링크 전용 스타일 추가 */
-      .admin-setup-link {
-        margin-left: auto; /* 게시판 메뉴와 떨어뜨려 오른쪽 끝으로 배치 */
-        color: #d9534f !important; /* 관리자용 강조 색상 */
+      /* 관리자 링크 전용 스타일 */
+      /* .boardList-header nav a.admin-setup-link 라고 써서 우선순위를 높입니다 */
+      .boardList-header nav a.admin-setup-link {
+        margin-left: auto;
+        color: #9EBFDB !important;
         display: flex;
         align-items: center;
-        gap: 5px;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        transition: all 0.2s ease;
+
+        /* 밑줄 제거 */
+        border-bottom: none !important;
+        padding-bottom: 0;
       }
-      .admin-setup-link:hover {
-        color: #c9302c !important;
-        border-bottom-color: #c9302c !important;
+
+      /* 마우스 올렸을 때 */
+      .boardList-header nav a.admin-setup-link:hover {
+        color: #032154 !important;
+        background-color: #f1f5f9;
+
+        /* hover 시 발생하는 3px 밑줄 강제 제거 */
+        border-bottom: none !important;
+        text-decoration: none !important;
+      }
+
+      /* 아이콘 크기 */
+      .admin-setup-link i {
+        font-size: 1.2rem;
       }
     </style>
 
@@ -64,9 +84,9 @@
       </a>
 
       <a th:if="${loginUser != null and loginUser.role == 'ADMIN'}"
-         href="/admin/main"
-         class="admin-setup-link">
-        <i class="fas fa-cog"></i> 관리자 설정
+         th:href="@{/community/admin}"
+         class="admin-setup-link" title="관리자 설정">
+        <i class="fas fa-cog"></i>
       </a>
     </nav>
   </div>

@@ -7,30 +7,39 @@
 </head>
 
 <body class="main-layout">
-<aside th:replace="~{fragments/sidebar :: sidebar('community')}"></aside>
+<div class="main-layout" style="display: flex; min-height: 100vh;">
+    <!-- 1. 왼쪽 사이드바 -->
+    <div th:replace="~{fragments/sidebar :: sidebar(currentPage='community')}"></div>
+    <!-- 2. 오른쪽 영역 (헤더 + 본문) -->
+    <div class="main-wrapper" style="flex: 1; display: flex; flex-direction: column;">
+        <!--            <a th:text="${boardId}">광장 = 1, 마켓 = 2</a>-->
+        <!--            <a th:each="board : ${boards}" th:text="${board.name}">String = 광장, 마켓 </a>-->
+        <!--            <a th:each="category : ${categories}" th:text="${category.name}">전체, 자유, 토론 </a>-->
+        <!--            <a th:text="${categoryId}">전체, 자유, 토론 </a>-->
+        <!--            <p>현재 경로는 <span th:text="${boards[0].name}">현재 경로</span>입니다.</p>-->
 
-<div class="right-section">
 
-    <div th:replace="~{fragments/headerCurrentMenuView :: path(${ {'community', '관리'} })}"></div>
-    <div th:replace="~{fragments/headerCategoryMenu :: community}"></div>
+        <main class="main-wrapper content-community" style="flex: 1; display: flex; flex-direction: column;">
+            <div th:replace="~{fragments/headerCurrentMenuView :: path(${ {'community', '관리'} })}"></div>
+            <div th:replace="~{fragments/headerCategoryMenu :: community}"></div>
 
-    <main class="main-content">
-        <section class="admin-content-area">
-            <div class="admin-header">
-                <h2>커뮤니티 관리 센터</h2>
-                <button type="button" class="btn-create-main" onclick="toggleCreateForm()">
-                    + 새 게시판 등록
-                </button>
-            </div>
+                <section class="admin-content-area">
+                    <div class="admin-header">
+                        <h2>커뮤니티 관리 센터</h2>
+                        <button type="button" class="btn-create-main" onclick="toggleCreateForm()">
+                            + 새 게시판 등록
+                        </button>
+                    </div>
 
-            <div class="admin-list-box">
-                <div th:replace="~{community/fragments/boardList :: boardList}"></div>
-            </div>
-        </section>
-    </main>
-
-    <footer th:replace="~{fragments/footer :: footer}"></footer>
+                    <div class="admin-list-box">
+                        <div th:replace="~{community/fragments/boardList :: boardList}"></div>
+                    </div>
+                </section>
+        </main>
+        <footer th:replace="~{fragments/footer :: footer}"></footer>
+    </div>
 </div>
+
 <script th:src="@{/js/community/adminpage.js}"></script>
 </body>
 </html>

@@ -232,6 +232,13 @@ public class PostController {
         model.addAttribute("category", category);
         model.addAttribute("boards", boardService.findAll()); // 게시판 헤더용
 
+        // [임시] 관리자 정보
+        PostUserRsDTO tempAdmin = PostUserRsDTO.builder()
+                .id(1L)
+                .role("ADMIN") // HTML의 th:if 조건인 'ADMIN'과 일치해야 함
+                .build();
+        model.addAttribute("loginUser", tempAdmin);
+
         // 글쓰기 모드일 때만 '전체'가 빠진 목록을 가져옴
         List<CategoryResponseDTO> categories;
         if (isWriteMode) {
