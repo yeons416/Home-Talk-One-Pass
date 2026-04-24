@@ -213,9 +213,17 @@ function togglePin(postId) {
     // 1. 확인 메시지
     if (!confirm("이 게시글을 상단 고정하시겠습니까?")) return;
 
+    // 1. 메타 태그에서 CSRF 토큰과 헤더 이름 가져오기
+    const token = document.querySelector('meta[name="_csrf"]').content;
+    const header = document.querySelector('meta[name="_csrf_header"]').content;
+
     // 2. 서버로 상태 변경 요청 (Fetch API 사용)
-    fetch(`/api/posts/${postId}/pin`, {
-            method: 'POST'
+    fetch(`/hometop/api/posts/${postId}/pin`, {
+            method: 'POST',
+            headers: {
+                "Content-Type": "application/json",
+                [header]: token
+            }
         })
         .then(response => {
             if (response.ok) {
@@ -235,18 +243,26 @@ function togglePin(postId) {
 function hidePost(postId) {
     if(!confirm("정말 숨기시겠습니까?")) return;
 
+    // 1. 메타 태그에서 CSRF 토큰과 헤더 이름 가져오기
+    const token = document.querySelector('meta[name="_csrf"]').content;
+    const header = document.querySelector('meta[name="_csrf_header"]').content;
+
     const adminArea = document.querySelector('.admin-tools');
     const boardCode = adminArea.dataset.boardCode;
     const categoryCode = adminArea.dataset.categoryCode || 'all';
 
-    fetch(`/api/posts/${postId}/hide`, {
-        method: 'POST'
+    fetch(`/hometop/api/posts/${postId}/hide`, {
+        method: 'POST',
+        headers: {
+            "Content-Type": "application/json",
+            [header]: token
+        }
     })
         .then(response => {
         if (response.ok) {
             alert("숨김 처리가 완료되었습니다.");
             // 원래 있던 게시판 목록으로 이동
-            location.href = `/community/${boardCode}/${categoryCode}`;
+            location.href = `/hometop/community/square/all`;
         } else {
             alert("처리 중 오류가 발생했습니다.");
         }

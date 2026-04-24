@@ -111,7 +111,7 @@
                         <tbody th:if="${not #lists.isEmpty(posts)}">
                             <tr th:each="post : ${posts}" th:classappend="${post.pinned} ? 'pinned-row' : ''">
                                 <td>
-                                    <span th:if="${post.pinned}" class="pin-badge">📌</span>
+                                    <span th:if="${post.pinned}" class="pin-badge"></span>
                                     <span th:text="${post.categoryName}" class="list-category"
                                           th:classappend="${post.categoryCode != null} ? ${#strings.toLowerCase(post.categoryCode)} : ''">카테고리</span>
                                 </td>

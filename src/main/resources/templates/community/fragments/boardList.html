@@ -2,7 +2,38 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 
 <div th:fragment="boardList">
-    <p style="background: #eee; padding: 20px;">[게시판 목록 영역 준비 중]</p>
+    <table class="admin-management-table">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>게시판 명</th>
+            <th>코드</th>
+            <th>카테고리 수</th>
+            <th>관리</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:if="${#lists.isEmpty(boards)}">
+            <td colspan="6" class="no-data">등록된 게시판이 없습니다.</td>
+        </tr>
+
+        <tr th:each="board : ${boards}">
+            <td th:text="${board.id}">1</td>
+            <td class="board-name">
+                <strong th:text="${board.name}">광장</strong>
+            </td>
+            <td th:text="${board.code}">square</td>
+            <td>
+                <span class="badge-count" th:text="${board.categories.size()} + '개'">3개</span>
+            </td>
+            <td class="action-btns">
+                <a class="btn-manage" th:href="@{/community/admin/create}">
+                    관리
+                </a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
 </div>
 
 </html>
