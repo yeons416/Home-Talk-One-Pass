@@ -9,14 +9,10 @@
 
 <body>
 <div class="main-layout" style="display: flex; min-height: 100vh;">
-
     <!-- 1. 왼쪽 사이드바 -->
     <div th:replace="~{fragments/sidebar :: sidebar(currentPage='community')}"></div>
-
     <!-- 2. 오른쪽 영역 (헤더 + 본문) -->
     <div class="main-wrapper" style="flex: 1; display: flex; flex-direction: column;">
-
-
         <!--            <a th:text="${boardId}">광장 = 1, 마켓 = 2</a>-->
         <!--            <a th:each="board : ${boards}" th:text="${board.name}">String = 광장, 마켓 </a>-->
         <!--            <a th:each="category : ${categories}" th:text="${category.name}">전체, 자유, 토론 </a>-->
@@ -54,10 +50,10 @@
         <div th:replace="~{fragments/headerCategoryMenu :: community}"></div>
 
         <!-- 메인 콘텐츠 -->
-        <main class="main-wrapper content" style="flex: 1; display: flex; flex-direction: column;">
-            <div th:replace="~{community/fragments/boardListHeader :: boardListHeader(boards=${boards}, boardId=${boardId})}"></div>
+        <main class="main-wrapper content-community" style="flex: 1; display: flex; flex-direction: column;">
+            <div th:replace="~{community/fragments/boardListHeader :: boardListHeader(boards=${boards}, boardId=${boardId}, loginUser=${loginUser})}"></div>
             <div th:replace="~{community/fragments/categoryBanner :: categoryBanner(board=${board}, categories=${categories}, categoryId=${categoryId})}"></div>
-            <p>태그(tags)</p>
+            <p>태그(tags)</p> <!-- fragment 구현 예정 -->
             <div class="content-container">
 
                 <div class="list-top-area">

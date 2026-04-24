@@ -120,6 +120,52 @@ function deletePost() {
     }
 }
 
+// 상단 고정
+function togglePin(postId) {
+    // 1. 확인 메시지
+    if (!confirm("이 게시글을 상단 고정하시겠습니까?")) return;
+
+    // 2. 서버로 상태 변경 요청 (Fetch API 사용)
+    fetch(`/api/posts/${postId}/pin`, {
+            method: 'POST'
+        })
+        .then(response => {
+            if (response.ok) {
+                alert("상태가 변경되었습니다.");
+                location.reload(); // 성공 시 화면 새로고침하여 바뀐 상태 반영
+            } else {
+                return response.json().then(err => { throw new Error(err.message); });
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert("고정 처리 중 오류가 발생했습니다: " + err.message);
+        });
+}
+
+// 숨김 처리
+function hidePost(postId) {
+    if(!confirm("정말 숨기시겠습니까?")) return;
+
+    const adminArea = document.querySelector('.admin-tools');
+    const boardCode = adminArea.dataset.boardCode;
+    const categoryCode = adminArea.dataset.categoryCode || 'all';
+
+    fetch(`/api/posts/${postId}/hide`, {
+        method: 'POST'
+    })
+        .then(response => {
+        if (response.ok) {
+            alert("숨김 처리가 완료되었습니다.");
+            // 원래 있던 게시판 목록으로 이동
+            location.href = `/community/${boardCode}/${categoryCode}`;
+        } else {
+            alert("처리 중 오류가 발생했습니다.");
+        }
+    })
+        .catch(err => console.error("Error:", err));
+}
+
 /* ================================================
     [4] 목록 조회 & 페이징 기능
 =================================================== */

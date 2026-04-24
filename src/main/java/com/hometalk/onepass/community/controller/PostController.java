@@ -78,7 +78,7 @@ public class PostController {
             session.setAttribute("viewedPosts", viewedPosts);
         }
 
-        // 1. 게시글 데이터 가져오기 (tempUser를 넘겨서 editable, admin 여부를 계산함)
+        // 1. 게시글 데이터 가져오기 (tempUser를 넘겨서 editable, admin 여부 계산)
         PostResponseDTO post = postService.postDetail(id, tempUser, boardCode, viewedPosts);
         model.addAttribute("post", post);
 

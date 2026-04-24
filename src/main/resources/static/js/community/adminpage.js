@@ -38,3 +38,9 @@ document.getElementById('btn-submit').addEventListener('click', () => {
     // 유효성 검사 통과 시 Fetch API로 서버에 데이터 전송
     // AdminBoardCreateRequestDTO 형태에 맞춰서 JSON 구성
 });
+
+
+function toggleCreateForm() {
+    const form = document.getElementById('createFormArea');
+    form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
